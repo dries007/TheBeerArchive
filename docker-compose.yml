@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+    db:
+        image: postgres
+        restart: always
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+    nginx:
+        image: nginx
+        restart: always
+        volumes:
+            - ./data/www:/var/www
+
