@@ -5,10 +5,13 @@ services:
         image: postgres
         restart: always
         volumes:
-            - ./data/db:/var/lib/postgresql/data
+            - "./data/db:/var/lib/postgresql/data"
+
     nginx:
         image: nginx
         restart: always
         volumes:
-            - ./data/www:/var/www
-
+            - "./data/www:/var/www"
+            - "./conf/nginx:/etc/nginx:ro"
+        ports:
+            - "8000:80"
