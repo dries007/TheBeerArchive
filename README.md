@@ -47,7 +47,6 @@ Software
 - Bootstrap (+ Font Awesome)
 	- jQ / Ajax
 
-
 Installation Instructions
 -------------------------
 
