@@ -1,18 +1,20 @@
 version: '2'
 services:
+    # PostgreSQL database image
     db:
         image: postgres
         restart: always
         volumes:
-            - "./persist/db:/var/lib/postgresql/data"
+            - "db_volume:/var/lib/postgresql/data"
         environment:
             - POSTGRES_USER=thebeerarchive
             - POSTGRES_DB=thebeerarchive
-        env_file: 
-            - ./passwords.env
+        env_file:
+            - ./passwords.env # Contains POSTGRES_PASSWORD
         ports:
-            - "5432:5432"
-
+            - "5432:5432" # todo: remove
+    
+    # Nginx static web & proxy server
     nginx:
         image: nginx
         restart: always
@@ -22,10 +24,12 @@ services:
             - app
         volumes:
             - "./conf/nginx:/etc/nginx/conf.d:ro"
-            - "./persist/logs:/var/log/nginx"
         ports:
             - "80:80"
-        
+            - "443:443"
+    
+    # The python app. Runs flask
+    # todo: move to uwsgi
     app:
         build: ./app
         restart: always
@@ -37,5 +41,8 @@ services:
             - FLASK_APP=app.py
             - FLASK_DEBUG=1
         ports:
-            - "5000:5000"
+            - "5000:5000" # todo: remove
         command: "python -m flask run --host=0.0.0.0"
+
+volumes:
+    db_volume:
