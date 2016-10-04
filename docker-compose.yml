@@ -13,7 +13,7 @@ services:
             - ./passwords.env # Contains POSTGRES_PASSWORD
         ports:
             - "5432:5432" # todo: remove
-    
+
     # Nginx static web & proxy server
     nginx:
         image: nginx
@@ -22,12 +22,21 @@ services:
             - app
         volumes_from:
             - app
+            - certbot
         volumes:
             - "./conf/nginx:/etc/nginx/conf.d:ro"
         ports:
-            - "80:80"
-            - "443:443"
-    
+            - "8000:80"
+            - "8043:443"
+
+    certbot:
+        build: ./certbot
+        volumes:
+            - "./le:/etc/letsencrypt"
+            #- "ssl_volume:/etc/letsencrypt"
+            - "./log:/var/log"
+        command: "certonly -n -t --email admin@dries007.net --agree-tos --webroot -w /etc/letsencrypt -d vps0.dries007.net"
+
     # The python app. Runs flask
     # todo: move to uwsgi
     app:
@@ -46,3 +55,4 @@ services:
 
 volumes:
     db_volume:
+    ssl_volume:
