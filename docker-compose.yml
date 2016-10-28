@@ -33,15 +33,16 @@ services:
         build: ./certbot
         volumes:
             - "./le:/etc/letsencrypt"
-            #- "ssl_volume:/etc/letsencrypt"
+            # - "ssl_volume:/etc/letsencrypt"
             - "./log:/var/log"
-        command: "certonly -n -t --email admin@dries007.net --agree-tos --webroot -w /etc/letsencrypt -d vps0.dries007.net"
+        command: "certonly -n -t --email admin@dries007.net --agree-tos --webroot -w /etc/letsencrypt -d bier.dries007.net -d beer.dries007.net"
 
     # The python app. Runs flask
     # todo: move to uwsgi
     app:
         build: ./app
         restart: always
+        hostname: app
         links:
             - db
         volumes:
@@ -49,6 +50,11 @@ services:
         environment:
             - FLASK_APP=app.py
             - FLASK_DEBUG=1
+            - POSTGRES_USER=thebeerarchive
+            - POSTGRES_DB=thebeerarchive
+            - SQLALCHEMY_TRACK_MODIFICATIONS=True
+        env_file:
+            - ./passwords.env # Contains FLASK_SECRET
         ports:
             - "5000:5000" # todo: remove
         command: "python -m flask run --host=0.0.0.0"

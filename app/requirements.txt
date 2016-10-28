@@ -1,3 +1,6 @@
 Flask
-SQLAlchemy
 uwsgi
+Flask-SQLAlchemy
+Flask-Login
+Flask-Bcrypt
+CommonMark
