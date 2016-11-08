@@ -1,5 +1,6 @@
 from app import lm
 from app import app
+from flask import Markup
 from flask_login import current_user
 from CommonMark import commonmark
 
@@ -26,4 +27,5 @@ def filter_nl2br(text):
 
 @app.template_filter('markdown')
 def filter_markdown(text):
-    return Markup(commonmark(re.sub('<.*?>', '', text)))
+    # return Markup(commonmark(re.sub('<.*?>', '', text)))
+    return Markup(commonmark(text))

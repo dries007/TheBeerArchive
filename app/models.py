@@ -20,18 +20,31 @@ class User(db.Model):
         return False
 
     def get_id(self):
-        try:
-            return unicode(self.id)  # python 2
-        except NameError:
-            return str(self.id)  # python 3
+        return str(self.id)
 
     def __repr__(self):
         return '<User %r>' % self.nickname
 
 
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-
 class Page(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, index=True, unique=True)
+    content = db.Column(db.String, nullable=False)
+    title = db.Column(db.String, nullable=False)
+
+    posts = db.relationship('Post', backref='page', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Page %r>' % self.name
+
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    clazz = db.Column(db.String)
+    content = db.Column(db.String, nullable=False)
+    published = db.Column(db.DateTime)
+    page_id = db.Column(db.Integer, db.ForeignKey('page.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __repr__(self):
+        return '<Post %r>' % self.id

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }}!{% endblock %}
+{% block content %}
+    {{ super() }}
+    {{ page.content | markdown }}
+    {% for post in page.posts %}
+      <div class="{{ post.clazz or "post" }}">
+        {{ post.content | markdown }}
+      </div>
+    {% endfor %}
+{% endblock %}
