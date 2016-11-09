@@ -12,6 +12,7 @@ app.jinja_env.lstrip_blocks = True
 
 #app.config.from_object(__name__ + '.Config')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%s:%s@db/%s' % (os.environ['POSTGRES_USER'], os.environ['POSTGRES_PASSWORD'], os.environ['POSTGRES_DB'])
+app.secret_key = os.environ['FLASK_SECRET']
 
 bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
@@ -22,5 +23,11 @@ lm.login_view = '/login'
 # Will show up as unused
 import helpers
 import models
+import forms
 import routes
 
+
+# fixme: It's impossible to catch HTTPException. Flask Bug #941 (https://github.com/pallets/flask/issues/941)
+from werkzeug.exceptions import default_exceptions
+for code, ex in default_exceptions.items():
+    app.errorhandler(code)(routes.any_error)

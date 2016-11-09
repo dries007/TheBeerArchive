@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ title }}{% endblock %}
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/1.11.2/simplemde.min.css" integrity="sha256-Is0XNfNX8KF/70J2nv8Qe6BWyiXrtFxKfJBHoDgNAEM=" crossorigin="anonymous">
+{% endblock %}
+{% block script %}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/simplemde/1.11.2/simplemde.min.js" integrity="sha256-6sZs7OGP0Uzcl7UDsLaNsy1K0KTZx1+6yEVrRJMn2IM=" crossorigin="anonymous"></script>
+    <script>
+    $(function () {
+        var editor = new SimpleMDE({
+            autofocus: true,
+            element: document.getElementById("editor"),
+            spellChecker: false,
+            autosave: {
+                enabled: false,
+                delay: 5000,
+                uniqueId: "{{ uniqueid }}"
+            },
+            tabSize: 4,
+            toolbar: ["bold", "italic", "strikethrough", "heading", "|", "quote", "unordered-list", "ordered-list", "link", "image", "table", "horizontal-rule", "|", "preview", "side-by-side", "fullscreen", "guide"]
+        });
+
+        // fixme: For hiding/showing the navbar on swapping fullscreen (https://github.com/NextStepWebs/simplemde-markdown-editor/issues/438)
+        const oldEditorSetOption = editor.codemirror.setOption;
+        editor.codemirror.setOption = function(option, value) {
+            oldEditorSetOption.apply(this, arguments);
+            if (option === 'fullScreen') {
+                if (value) $(".navbar").hide();
+                else $(".navbar").show();
+            }
+        };
+    });
+    </script>
+{% endblock %}
+{% block content %}
+    <form method="post">
+{# todo: make work. This is where you where at. #}
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="title">Page Title</label>
+            {{ form.title(class="form-control") }}
+{#            <input id="title" name="title" type="text" class="form-control" value="{{ title }}"/>#}
+        </div>
+        <div class="form-group">
+            <label for="editor">Content</label>
+            {{ form.editor() }}
+{#            <textarea id="editor" name="editor" class="invisible">{{ editor }}</textarea>#}
+        </div>
+        <div class="form-group">
+            {{ form.save(class="btn btn-primary") }}
+{#            <button type="submit" class="btn btn-primary">Save</button>#}
+        </div>
+    </form>
+{% endblock %}

@@ -6,11 +6,9 @@ services:
         restart: always
         volumes:
             - "db_volume:/var/lib/postgresql/data"
-        environment:
-            - POSTGRES_USER=thebeerarchive
-            - POSTGRES_DB=thebeerarchive
         env_file:
-            - ./passwords.env # Contains POSTGRES_PASSWORD
+            - ./settings.env
+            - ./passwords.env
         ports:
             - "5432:5432" # todo: remove
 
@@ -46,15 +44,10 @@ services:
         links:
             - db
         volumes:
-            - "./app:/usr/src/app:ro"
-        environment:
-            - FLASK_APP=app.py
-            - FLASK_DEBUG=1
-            - POSTGRES_USER=thebeerarchive
-            - POSTGRES_DB=thebeerarchive
-            - SQLALCHEMY_TRACK_MODIFICATIONS=True
+            - "./app:/usr/src/app"
         env_file:
-            - ./passwords.env # Contains FLASK_SECRET
+            - ./settings.env
+            - ./passwords.env
         ports:
             - "5000:5000" # todo: remove
         command: "python -m flask run --host=0.0.0.0"

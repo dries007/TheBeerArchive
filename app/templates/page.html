@@ -1,8 +1,7 @@
 {% extends "base.html" %}
-{% block title %}{{ page.title }}!{% endblock %}
+{% block title %}{{ page.title }}{% endblock %}
 {% block content %}
-    {{ super() }}
-    {{ page.content | markdown }}
+    <div>{{ page.content | markdown }}</div>
     {% for post in page.posts %}
       <div class="{{ post.clazz or "post" }}">
         {{ post.content | markdown }}
