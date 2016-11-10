@@ -12,6 +12,7 @@ class User(db.Model):
     nickname = db.Column(db.String, index=True, unique=True)
     password = db.Column(db.String, nullable=False)
     email = db.Column(db.String, index=True, unique=True)
+    bio = db.Column(db.String, default="", nullable=False)
     posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def __init__(self, nickname, email, password):

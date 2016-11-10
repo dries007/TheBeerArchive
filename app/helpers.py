@@ -33,9 +33,9 @@ def filter_nl2br(text):
 
 
 @app.template_filter('markdown')
-def filter_markdown(text):
+def filter_markdown(text, safe=False):
     parser = CommonMark.Parser()
-    renderer = CommonMark.HtmlRenderer({'softbreak': '<br />'})
+    renderer = CommonMark.HtmlRenderer({'softbreak': '<br />', 'safe': safe})
     return Markup(renderer.render(parser.parse(text)))
 
 

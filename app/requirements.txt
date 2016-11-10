@@ -30,3 +30,4 @@ WTForms==2.1
 WTForms-Alchemy==0.16.1
 WTForms-Components==0.10.0
 WTForms-SQLAlchemy==0.1
+Flask-Gravatar==0.4.2

@@ -7,6 +7,7 @@ from flask import flash
 from flask_login import current_user
 from flask_login import logout_user
 from flask_login import login_user
+from flask_login import login_required
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import NotFound
@@ -52,6 +53,20 @@ def logout():
     return redirect(request.args.get('next') or '/')
 
 
+@app.route("/profile/<int:id>")
+def profile(id):
+    user = User.query.get(id)
+    if user is None:
+        raise NotFound("User %d not found." % id)
+    return render_template('profile.html', profile=user)
+
+
+@app.route("/profile")
+@login_required
+def own_profile():
+    return render_template('profile.html', profile=current_user)
+
+
 @app.route("/")
 def index():
     page = Page.query.get(0)
@@ -64,7 +79,7 @@ def index():
 def any_page(name):
     page = Page.query.filter_by(name=name).first()
     if page is None:
-        abort(404)
+        raise NotFound('Page %s not found.' % name)
     return render_template('page.html', page=page)
 
 

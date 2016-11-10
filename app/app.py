@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
+from flask_gravatar import Gravatar
 import mimetypes
 import os
 
@@ -18,6 +19,7 @@ bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
 lm = LoginManager(app)
 lm.login_view = '/login'
+gravatar = Gravatar(app, size=100, rating='g', default='retro', use_ssl=True)
 
 # Must be after init & config, to avoid circular dependencies
 # Will show up as unused
