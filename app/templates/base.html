@@ -1,10 +1,39 @@
+{% macro menuitem(item, class, dropdown=False) %}
+{% if item.disabled %}
+<div class="{{ class }} disabled">{{ item.text }}</div>
+{% else %}
+<a class="{{ class }}" href="{{ item.url | replace("<url>", request.path) }}" {% if dropdown %}data-toggle="dropdown"{% endif %}>{{ item.text }}</a>
+{% endif %}
+{% endmacro %}
+{% macro menu(items, class) %}
+<nav class="nav navbar-nav {{ class }}">
+    {% for item in items if item is menu_conditions %}
+    {% if item.subs %}
+    <div class="nav-item dropdown">
+        {{ menuitem(item, "nav-link dropdown-toggle", True) }}
+        <div class="dropdown-menu">
+            {% for subitem in item.subs if subitem is menu_conditions %}
+                {% if subitem == "|" %}
+                <div class="dropdown-divider"></div>
+                {% else %}
+                {{ menuitem(subitem, "dropdown-item") }}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    {{ menuitem(item, "nav-item nav-link") }}
+    {% endif %}
+    {% endfor %}
+</nav>
+{% endmacro %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>{% block title %}Homebrewing!{% endblock %}</title>
+    <title>{% block title %}{{ config.title }}!{% endblock %}</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
     {% block head %}<link rel="stylesheet" href="/static/css/base.css">{% endblock %}
@@ -16,9 +45,11 @@
     {% block script %}<script>
         $(function ()
         {
-            $('#navbar').find('.nav a').each(function (i, e) {
-                console.log(e.href.trim())
-            })
+            $('#navbar').find('.nav a').each(function (i, e)
+            {
+                if (e.href != window.location.href) return;
+                $(e).addClass("active").parents(".nav-item").addClass("active");
+            });
         });
     </script>{% endblock %}
     <!-- Fixed navbar -->
@@ -30,25 +61,13 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Dries007's Homebrewing</a>
+            <a class="navbar-brand" href="/">{{ config.title }}</a>
             <div id="navbar">
-                <nav class="nav navbar-nav pull-xs-left">
-                    <a class="nav-item nav-link" href="/list">The list</a>
-                </nav>
-                <nav class="nav navbar-nav pull-xs-right">
-                {% if user.is_authenticated %}
-                    {% if user.is_brewer() %}
-                    <a class="nav-item nav-link" href="/new">New beer</a>
-                    {% endif %}
-                    <a class="nav-item nav-link" href="/settings">{{ user.name }}</a>
-                {% else %}
-                    <a class="nav-item nav-link" href="/login">Log in</a>
-                {% endif %}
-                </nav>
+                {{- menu(config.menu_left, 'pull-xs-left') if config.menu_left -}}
+                {{- menu(config.menu_right, 'pull-xs-right') if config.menu_right -}}
             </div>
         </div>
     </nav>
-
     <div class="container">
     {% block messages %}
         {% with messages = get_flashed_messages(with_categories=True) %}
@@ -68,7 +87,6 @@
         <h1>{{ self.title() }}</h1>
     {% endblock %}
     </div>
-
     <footer class="footer">
       <div class="container">
         <span class="text-muted">&copy; <a class="hide" href="https://dries007.net">Dries007</a> - 2016 - <a class="hide" href="https://github.com/dries007/TheBeerArchive">Source available here.</a></span>

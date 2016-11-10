@@ -1,4 +1,5 @@
 /passwords.env
+/app/venv/
 
 ###Jetbrains###
 
@@ -20,3 +21,4 @@
 
 # sftp configuration file
 sftp-config.json
+

@@ -13,6 +13,7 @@
             autofocus: true,
             element: document.getElementById("editor"),
             spellChecker: false,
+            status: false,
             autosave: {
                 enabled: false,
                 delay: 5000,
@@ -31,26 +32,63 @@
                 else $(".navbar").show();
             }
         };
+
+        $("#form").submit(function() {editor.clearAutosavedValue(); });
     });
     </script>
 {% endblock %}
 {% block content %}
-    <form method="post">
-{# todo: make work. This is where you where at. #}
+    <form id="form" method="post">
         {{ form.hidden_tag() }}
-        <div class="form-group">
-            <label for="title">Page Title</label>
-            {{ form.title(class="form-control") }}
-{#            <input id="title" name="title" type="text" class="form-control" value="{{ title }}"/>#}
+        <div class="row">
+            <div class="col-sm-6 form-group{{ ' has-danger' if form.title.errors }}">
+                <label class="form-control-label" for="title">Page Title</label>
+                {{ form.title(class="form-control") }}
+                <small class="form-text text-muted">The human readable title.</small>
+                {% if form.title.errors %}
+                    {% for error in form.title.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
+                {% endif %}
+            </div>
+            <div class="col-sm-6 form-group{{ ' has-danger' if form.name.errors }}">
+                <label class="form-control-label" for="title">Page Name</label>
+                {{ form.name(class="form-control") }}
+                {% if form.name.errors %}
+                    {% for error in form.name.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
+                {% endif %}
+                <small class="form-text text-muted">Used as page URL. Must be unique. Alphanumerical and underscores only.</small>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="editor">Content</label>
+{#    todo: remove? #}
+        <div class="row">
+            <div class="col-sm-4">
+                <label class="form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
+                    Allow comments
+                </label>
+            </div>
+            <div class="col-sm-4">
+                <label class="form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2">
+                    Allow posts
+                </label>
+            </div>
+            <div class="col-sm-4">
+                <label class="form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">
+                    Show link in title bar
+                </label>
+            </div>
+        </div>
+{#    todo: end remove#}
+        <div class="form-group{{ ' has-danger' if form.editor.errors }}">
+            <label class="form-control-label" for="editor">Content</label>
             {{ form.editor() }}
-{#            <textarea id="editor" name="editor" class="invisible">{{ editor }}</textarea>#}
+            {% if form.editor.errors %}
+                {% for error in form.editor.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
+            {% endif %}
         </div>
         <div class="form-group">
             {{ form.save(class="btn btn-primary") }}
-{#            <button type="submit" class="btn btn-primary">Save</button>#}
         </div>
     </form>
 {% endblock %}
