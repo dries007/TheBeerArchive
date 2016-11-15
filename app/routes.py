@@ -24,6 +24,8 @@ from forms import LoginForm
 from forms import EditForm
 from forms import PageEditForm
 
+from helpers import markdown
+
 
 @app.errorhandler(HTTPException)
 def any_error(e):
@@ -98,6 +100,7 @@ def page_edit(id):
         page.title = form.title.data
         page.name = form.name.data
         page.content = form.editor.data
+        page.content_html = markdown(page.content)
         db.session.add(page)
         db.session.commit()
     return render_template('edit.html', form=form, title=page.title, uniqueid="page-%d" % id)

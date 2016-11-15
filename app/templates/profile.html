@@ -11,7 +11,7 @@
         <dt class="col-sm-3">User id</dt>   <dd class="col-sm-9">{{ profile.id }}</dd>
         <dt class="col-sm-3">Name</dt>      <dd class="col-sm-9">{{ profile.nickname }}</dd>
         <dt class="col-sm-3">Email</dt>     <dd class="col-sm-9">{{ profile.email }}</dd>
-        <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio | markdown }}</dd>
+        <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
     </dl>
     {% if request.path == "/profile" %}
     <a href="/profile/{{ profile.id }}">Public link</a>

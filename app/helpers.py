@@ -57,11 +57,14 @@ class HTMLEntitiesExtension(markdown.Extension):
         md.inlinePatterns.add('plus_minus', SimpleTextReplacePattern(r'\+-', 'plusmn'), '_end')
 
 
-@app.template_filter('markdown')
-def filter_markdown(text):
+def markdown(text):
     md = markdown.markdown(text, extensions=[GithubFlavoredMarkdownExtension(), HTMLEntitiesExtension()])
     cleaner = clean.Cleaner(links=False, add_nofollow=True)
-    return Markup('<div class="md">%s</div>' % cleaner.clean_html(md))
+    return '<div class="md">%s</div>' % cleaner.clean_html(md)
+
+@app.template_filter('markdown')
+def filter_markdown(text):
+    return Markup(markdown(text))
 
 
 def _test_menu_condition(condition):

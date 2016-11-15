@@ -13,6 +13,7 @@ class User(db.Model):
     password = db.Column(db.String, nullable=False)
     email = db.Column(db.String, index=True, unique=True)
     bio = db.Column(db.String, default="", nullable=False)
+    bio_html = db.Column(db.String)
     posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def __init__(self, nickname, email, password):
@@ -43,6 +44,7 @@ class Page(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, unique=True)
     content = db.Column(db.String, nullable=False)
+    content_html = db.Column(db.String)
     title = db.Column(db.String, nullable=False)
 
     posts = db.relationship('Post', backref='page', lazy='dynamic')
@@ -55,6 +57,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     clazz = db.Column(db.String)
     content = db.Column(db.String, nullable=False)
+    content_html = db.Column(db.String)
     published = db.Column(db.DateTime)
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
