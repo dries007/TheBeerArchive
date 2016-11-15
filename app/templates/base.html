@@ -34,24 +34,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>{% block title %}{{ config.title }}!{% endblock %}</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha256-mIfhv/h3MLq3WSiSlduuZO3saRNzzuf1LK8w3z3l3JY=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha256-NuCn4IvuZXdBaFKJOAcsU2Q3ZpwbdFisd5dux4jkQ5w=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/css/basic/emojify.min.css" integrity="sha256-UOrvMOsSDSrW6szVLe8ZDZezBxh5IoIfgTwdNDgTjiU=" crossorigin="anonymous" />
     {% block head %}<link rel="stylesheet" href="/static/css/base.css">{% endblock %}
 </head>
 <body>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js" integrity="sha384-THPy051/pYDQGanwU6poAc/hOdQxjnOEXzbT+OuUAFqNqFjL+4IGLBgCJC3ZOShY" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js" integrity="sha384-Plbmg8JY28KFelvJVai01l8WyZzrYWG825m+cZ0eDDS1f7d/js6ikvy1+X+guPIB" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js" integrity="sha384-ux8v3A6CPtOTqOzMKiuo3d/DomGaaClxFYdCu2HPMBEkf6x2xiDyJ7gkXU0MWwaD" crossorigin="anonymous"></script>
-    {% block script %}<script>
-        $(function ()
-        {
-            $('#navbar').find('.nav a').each(function (i, e)
-            {
-                if (e.href != window.location.href) return;
-                $(e).addClass("active").parents(".nav-item").addClass("active");
-            });
-        });
-    </script>{% endblock %}
     <!-- Fixed navbar -->
     <nav class="navbar navbar-dark navbar-fixed-top bg-inverse">
         <div class="container">
@@ -63,8 +51,8 @@
             </button>
             <a class="navbar-brand" href="/">{{ config.title }}</a>
             <div id="navbar">
-                {{- menu(config.menu_left, 'pull-xs-left') if config.menu_left -}}
-                {{- menu(config.menu_right, 'pull-xs-right') if config.menu_right -}}
+                {{- menu(config.menu_left, 'float-xs-left') if config.menu_left -}}
+                {{- menu(config.menu_right, 'float-xs-right') if config.menu_right -}}
             </div>
         </div>
     </nav>
@@ -92,5 +80,42 @@
         <span class="text-muted">&copy; <a class="hide" href="https://dries007.net">Dries007</a> - 2016 - <a class="hide" href="https://github.com/dries007/TheBeerArchive">Source available here.</a></span>
       </div>
     </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js" integrity="sha256-/5pHDZh2fv1eZImyfiThtB5Ag4LqDjyittT7fLjdT/8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.5/js/bootstrap.min.js" integrity="sha256-j+XrvkQ4jJ99Hj0pJKPr6k0RCgxDDSTs3PBqLrX2EMc=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/js/emojify.min.js" integrity="sha256-VAB5tAlKBvgaxw8oJ1crWMVbdmBVl4mP/2M8MNRl+4E=" crossorigin="anonymous"></script>
+    {% block script %}<script>
+    "use strict";
+
+    function markdown_markup(root)
+    {
+        root.find("table").addClass("table table-sm table-hover table-bordered").find("thead").addClass("thead-default");
+        root.find("img").addClass("img-fluid rounded").each(function(i, e) {
+            if (e.alt == "") return;
+            var j = $(e);
+            j.addClass("figure-img");
+            j.wrap('<figure class="figure"></figure');
+            j.after($('<figcaption class="figure-caption text-xs-center"></figcaption>').text(e.alt));
+        });
+        root.find("blockquote").addClass("blockquote");
+    }
+
+    $(function ()
+    {
+        $('#navbar').find('.nav a').each(function (i, e)
+        {
+            if (e.href != window.location.href) return;
+            $(e).addClass("active").parents(".nav-item").addClass("active");
+        });
+
+        //fixme: ugry hack to get classes on tags in markdown
+        markdown_markup($(".md"));
+
+        emojify.setConfig({
+            img_dir: "https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/images/basic"
+        });
+        emojify.run();
+    });
+    </script>{% endblock %}
 </body>
 </html>

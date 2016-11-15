@@ -29,6 +29,11 @@ from forms import PageEditForm
 def any_error(e):
     return render_template('error.html', e=e), e.code
 
+#
+# @app.route("/markdown")
+# def markdown():
+#     return render_template('old/markdown.html')
+
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
