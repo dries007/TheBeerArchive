@@ -6,12 +6,8 @@ from flask import escape
 from flask_login import current_user
 
 from lxml.html import clean
-# import CommonMark
-# import gfm
 from mdx_gfm import GithubFlavoredMarkdownExtension
 import markdown
-import re
-import hashlib
 
 from models import Config
 from models import User
@@ -57,14 +53,17 @@ class HTMLEntitiesExtension(markdown.Extension):
         md.inlinePatterns.add('plus_minus', SimpleTextReplacePattern(r'\+-', 'plusmn'), '_end')
 
 
-def markdown(text):
+def make_markdown(text):
+    if text is None or text == '':
+        return '<div class="md"></div>'
     md = markdown.markdown(text, extensions=[GithubFlavoredMarkdownExtension(), HTMLEntitiesExtension()])
     cleaner = clean.Cleaner(links=False, add_nofollow=True)
     return '<div class="md">%s</div>' % cleaner.clean_html(md)
 
+
 @app.template_filter('markdown')
 def filter_markdown(text):
-    return Markup(markdown(text))
+    return Markup(make_markdown(text))
 
 
 def _test_menu_condition(condition):

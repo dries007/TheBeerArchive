@@ -12,7 +12,6 @@ from flask_login import login_required
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import NotFound
 
-from app import bcrypt
 from app import app
 from app import db
 
@@ -23,18 +22,14 @@ from models import Post
 from forms import LoginForm
 from forms import EditForm
 from forms import PageEditForm
+from forms import ProfileEditForm
 
-from helpers import markdown
+from helpers import make_markdown
 
 
 @app.errorhandler(HTTPException)
 def any_error(e):
     return render_template('error.html', e=e), e.code
-
-#
-# @app.route("/markdown")
-# def markdown():
-#     return render_template('old/markdown.html')
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -43,7 +38,7 @@ def login():
     if form.login.data and form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).limit(1).first()
         if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
+            if user.password == form.password.data:
                 db.session.add(user)
                 db.session.commit()
                 login_user(user, remember=True)
@@ -90,17 +85,34 @@ def any_page(name):
     return render_template('page.html', page=page)
 
 
+# todo: authentication!!
 @app.route("/edit/page/<int:id>", methods=['GET', 'POST'])
+@login_required
 def page_edit(id):
     page = Page.query.get(id)
     if page is None:
-        raise NotFound('This page does not exist.')
+        page = Page()
+        # raise NotFound('This page does not exist.')
     form = PageEditForm(title=page.title, name=page.name, editor=page.content)
     if form.save.data and form.validate_on_submit():
         page.title = form.title.data
         page.name = form.name.data
         page.content = form.editor.data
-        page.content_html = markdown(page.content)
+        page.content_html = make_markdown(page.content)
         db.session.add(page)
         db.session.commit()
-    return render_template('edit.html', form=form, title=page.title, uniqueid="page-%d" % id)
+    return render_template('edit_page.html', form=form, title=page.title, uniqueid="page-%d" % id)
+
+
+@app.route("/edit/profile", methods=['GET', 'POST'])
+@login_required
+def profile_edit():
+    form = ProfileEditForm(editor=current_user.bio, email=current_user.email, name=current_user.name)
+    if form.save.data and form.validate_on_submit():
+        current_user.name = form.name.data
+        current_user.bio = form.editor.data
+        current_user.bio_html = '<p class="text-muted">This user has no bio set.</p>' if current_user.bio is None or current_user.bio == '' else make_markdown(current_user.bio)
+        db.session.add(current_user)
+        db.session.commit()
+    return render_template('edit_profile.html', form=form, uniqueid="user-%d" % current_user.id)
+

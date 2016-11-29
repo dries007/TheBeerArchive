@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Edit {{ title }}{% endblock %}
+{% block title %}Edit Profile{% endblock %}
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css" integrity="sha256-Is0XNfNX8KF/70J2nv8Qe6BWyiXrtFxKfJBHoDgNAEM=" crossorigin="anonymous" />
@@ -75,49 +75,27 @@
 {% endblock %}
 {% block content %}
     <form id="form" method="post">
-        {{ form.hidden_tag() }}
+{#        {{ form.hidden_tag() }}#}
         <div class="row">
-            <div class="col-sm-6 form-group{{ ' has-danger' if form.title.errors }}">
-                <label class="form-control-label" for="title">Page Title</label>
-                {{ form.title(class="form-control") }}
-                <small class="form-text text-muted">The human readable title.</small>
-                {% if form.title.errors %}
-                    {% for error in form.title.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
-                {% endif %}
-            </div>
             <div class="col-sm-6 form-group{{ ' has-danger' if form.name.errors }}">
-                <label class="form-control-label" for="title">Page Name</label>
+                <label class="form-control-label" for="name">Name</label>
                 {{ form.name(class="form-control") }}
+                <small class="form-text text-muted">A human readable name. Must be unique.</small>
                 {% if form.name.errors %}
                     {% for error in form.name.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
                 {% endif %}
-                <small class="form-text text-muted">Used as page URL. Must be unique. Alphanumerical and underscores only.</small>
+            </div>
+            <div class="col-sm-6 form-group{{ ' has-danger' if form.email.errors }}">
+                <label class="form-control-label" for="email">Email</label>
+                {{ form.email(class="form-control") }}
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
+                {% endif %}
+                <small class="form-text text-muted">A confirmation email will be send. Must be unique.</small>
             </div>
         </div>
-{#    todo: remove? #}
-{#        <div class="row">#}
-{#            <div class="col-sm-4">#}
-{#                <label class="form-check-inline">#}
-{#                    <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">#}
-{#                    Allow comments#}
-{#                </label>#}
-{#            </div>#}
-{#            <div class="col-sm-4">#}
-{#                <label class="form-check-inline">#}
-{#                    <input class="form-check-input" type="checkbox" id="inlineCheckbox2" value="option2">#}
-{#                    Allow posts#}
-{#                </label>#}
-{#            </div>#}
-{#            <div class="col-sm-4">#}
-{#                <label class="form-check-inline">#}
-{#                    <input class="form-check-input" type="checkbox" id="inlineCheckbox3" value="option3">#}
-{#                    Show link in title bar#}
-{#                </label>#}
-{#            </div>#}
-{#        </div>#}
-{#    todo: end remove#}
         <div class="form-group{{ ' has-danger' if form.editor.errors }}">
-            <label class="form-control-label" for="editor">Content</label>
+            <label class="form-control-label" for="editor">Bio</label>
             {{ form.editor() }}
             {% if form.editor.errors %}
                 {% for error in form.editor.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}

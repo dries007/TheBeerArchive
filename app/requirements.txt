@@ -4,7 +4,6 @@ click==6.6
 CommonMark==0.7.2
 decorator==4.0.10
 Flask==0.11.1
-Flask-Bcrypt==0.7.1
 Flask-Gravatar==0.4.2
 Flask-Login==0.4.0
 Flask-SQLAlchemy==2.1
@@ -36,3 +35,4 @@ WTForms==2.1
 WTForms-Alchemy==0.16.1
 WTForms-Components==0.10.0
 WTForms-SQLAlchemy==0.1
+PassLib

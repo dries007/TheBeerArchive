@@ -1,5 +1,9 @@
+from sqlalchemy_utils import PasswordType
+from sqlalchemy_utils import EmailType
+from sqlalchemy_utils import force_auto_coercion
 from app import db
-from app import bcrypt
+
+force_auto_coercion()
 
 
 class Config(db.Model):
@@ -9,17 +13,17 @@ class Config(db.Model):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    nickname = db.Column(db.String, index=True, unique=True)
-    password = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, index=True, unique=True)
+    name = db.Column(db.String, index=True, unique=True)
+    password = db.Column(PasswordType(schemes=['pbkdf2_sha512']), nullable=False)
+    email = db.Column(EmailType(), index=True, unique=True)
     bio = db.Column(db.String, default="", nullable=False)
     bio_html = db.Column(db.String)
     posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def __init__(self, nickname, email, password):
-        self.nickname = nickname
+        self.name = nickname
         self.email = email
-        self.password = bcrypt.generate_password_hash(password)
+        self.password = password
 
     @property
     def is_authenticated(self):
@@ -37,7 +41,7 @@ class User(db.Model):
         return str(self.id)
 
     def __repr__(self):
-        return '<User %r>' % self.nickname
+        return '<User %r>' % self.name
 
 
 class Page(db.Model):

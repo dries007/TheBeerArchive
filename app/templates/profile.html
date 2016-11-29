@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ profile.nickname }}'s profile{% endblock %}
+{% block title %}{{ profile.name }}'s profile{% endblock %}
 {% block content %}
     {% if user.is_authenticated and user.id == profile.id %}
     <div class="pull-right">
@@ -9,7 +9,7 @@
     <dl class="row">
         <dt class="col-sm-3">Gravatar</dt>  <dd class="col-sm-9"><img src="{{ profile.email | gravatar(size=200) }}" class="rounded" alt="Avatar provided by Gravatar"></dd>
         <dt class="col-sm-3">User id</dt>   <dd class="col-sm-9">{{ profile.id }}</dd>
-        <dt class="col-sm-3">Name</dt>      <dd class="col-sm-9">{{ profile.nickname }}</dd>
+        <dt class="col-sm-3">Name</dt>      <dd class="col-sm-9">{{ profile.name }}</dd>
         <dt class="col-sm-3">Email</dt>     <dd class="col-sm-9">{{ profile.email }}</dd>
         <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
     </dl>
