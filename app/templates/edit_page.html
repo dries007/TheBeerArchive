@@ -75,7 +75,7 @@
 {% endblock %}
 {% block content %}
     <form id="form" method="post">
-{#        {{ form.hidden_tag() }}#}
+        {{ form.hidden_tag() }}
         <div class="row">
             <div class="col-sm-6 form-group{{ ' has-danger' if form.title.errors }}">
                 <label class="form-control-label" for="title">Page Title</label>
