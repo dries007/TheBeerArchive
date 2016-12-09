@@ -30,9 +30,9 @@ services:
     certbot:
         build: ./certbot
         volumes:
-            - "./le:/etc/letsencrypt"
+            - "./run/le:/etc/letsencrypt"
             # - "ssl_volume:/etc/letsencrypt"
-            - "./log:/var/log"
+            - "./run/log:/var/log"
         command: "certonly -n -t --email admin@dries007.net --agree-tos --webroot -w /etc/letsencrypt -d bier.dries007.net -d beer.dries007.net"
 
     # The python app. Runs flask
@@ -50,7 +50,7 @@ services:
             - ./passwords.env
         ports:
             - "5000:5000" # todo: remove
-        command: "python -m flask run --host=0.0.0.0"
+        command: "python -m uBlog runserver --host=0.0.0.0"
 
 volumes:
     db_volume:
