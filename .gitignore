@@ -1,5 +1,6 @@
 /passwords.env
-/app/venv/
+/venv/
+/run/
 
 ###Jetbrains###
 

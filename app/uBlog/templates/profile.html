@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ profile.name }}'s profile{% endblock %}
 {% block content %}
-    {% if user.is_authenticated and user.id == profile.id %}
+    {% if own_profile %}
     <div class="pull-right">
         <a class="btn btn-outline-secondary" role="button" href="/edit/profile"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
     </div>
@@ -10,7 +10,12 @@
         <dt class="col-sm-3">Gravatar</dt>  <dd class="col-sm-9"><img src="{{ profile.email | gravatar(size=200) }}" class="rounded" alt="Avatar provided by Gravatar"></dd>
         <dt class="col-sm-3">User id</dt>   <dd class="col-sm-9">{{ profile.id }}</dd>
         <dt class="col-sm-3">Name</dt>      <dd class="col-sm-9">{{ profile.name }}</dd>
+        {% if own_profile or user.showEmail %}
         <dt class="col-sm-3">Email</dt>     <dd class="col-sm-9">{{ profile.email }}</dd>
+        {% endif %}
+        {% if own_profile %}
+        <dt class="col-sm-3">Emojis</dt>    <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.emojis else 'times' }}"></i></dd>
+        {% endif %}
         <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
     </dl>
     {% if request.path == "/profile" %}

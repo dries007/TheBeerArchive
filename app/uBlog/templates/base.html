@@ -87,10 +87,20 @@
     {% block script %}<script>
     "use strict";
 
+    {% if user.is_anonymous or user.emojis %}
+    $(function ()
+    {
+        emojify.setConfig({
+            img_dir: "https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/images/basic"
+        });
+        emojify.run();
+    });
+    {% endif %}
+
     function markdown_markup(root)
     {
         root.find("table").addClass("table table-sm table-hover table-bordered").find("thead").addClass("thead-default");
-        root.find("img").addClass("img-fluid rounded").each(function(i, e) {
+        root.find("img").not(".emoji").addClass("img-fluid rounded").each(function(i, e) {
             if (e.alt == "") return;
             var j = $(e);
             j.addClass("figure-img");
@@ -110,11 +120,6 @@
 
         //fixme: ugry hack to get classes on tags in markdown
         markdown_markup($(".md"));
-
-        emojify.setConfig({
-            img_dir: "https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/images/basic"
-        });
-        emojify.run();
     });
     </script>{% endblock %}
 </body>

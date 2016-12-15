@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Edit {{ title }}{% endblock %}
+{% block title %}Edit {{ title or 'new page' }}{% endblock %}
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css" integrity="sha256-Is0XNfNX8KF/70J2nv8Qe6BWyiXrtFxKfJBHoDgNAEM=" crossorigin="anonymous" />
@@ -13,7 +13,7 @@
     $(function () {
          editor = new SimpleMDE({
             autofocus: true,
-            element: document.getElementById("editor"),
+            element: document.getElementById("content"),
             spellChecker: false,
             status: false,
             autosave: {
@@ -94,11 +94,11 @@
                 <small class="form-text text-muted">Used as page URL. Must be unique. Alphanumerical and underscores only.</small>
             </div>
         </div>
-        <div class="form-group{{ ' has-danger' if form.editor.errors }}">
-            <label class="form-control-label" for="editor">Content</label>
-            {{ form.editor() }}
-            {% if form.editor.errors %}
-                {% for error in form.editor.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
+        <div class="form-group{{ ' has-danger' if form.content.errors }}">
+            <label class="form-control-label" for="content">Content</label>
+            {{ form.content() }}
+            {% if form.content.errors %}
+                {% for error in form.content.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
             {% endif %}
         </div>
         <div class="form-group">
