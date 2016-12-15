@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block content %}
+    {% if user.is_authenticated %}
+    <div class="pull-right">
+        <a class="btn btn-outline-secondary" role="button" href="/edit/page/{{ page.id }}"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+    </div>
+    {% endif %}
+    <div>{{ page.content_html | safe }}</div>
+    {% for post in page.posts %}
+    <div class="{{ post.clazz or "post" }}">
+        {{ post.content_html | safe }}
+    </div>
+    {% endfor %}
+{% endblock %}
