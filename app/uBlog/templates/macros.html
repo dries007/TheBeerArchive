@@ -1,0 +1,97 @@
+{#========== Menu item #}
+{% macro menuitem(item, class, dropdown=False) %}
+{% if item.disabled %}
+<div class="{{ class }} disabled">{{ item.text }}</div>
+{% else %}
+<a class="{{ class }}" href="{{ item.url | replace("<url>", request.path) }}" {% if dropdown %}data-toggle="dropdown"{% endif %}>{{ item.text }}</a>
+{% endif %}
+{% endmacro %}
+{#========== Menu #}
+{% macro menu(items, class) %}
+<nav class="nav navbar-nav {{ class }}">
+    {% for item in items if item is menu_conditions %}
+    {% if item.subs %}
+    <div class="nav-item dropdown">
+        {{ menuitem(item, "nav-link dropdown-toggle", True) }}
+        <div class="dropdown-menu">
+            {% for subitem in item.subs if subitem is menu_conditions %}
+                {% if subitem == "|" %}
+                <div class="dropdown-divider"></div>
+                {% else %}
+                {{ menuitem(subitem, "dropdown-item") }}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    {{ menuitem(item, "nav-item nav-link") }}
+    {% endif %}
+    {% endfor %}
+</nav>
+{% endmacro %}
+{#========== Simple Markdown Editor #}
+{% macro simpleMDE(elementid, uniqueid) %}
+ <script>
+"use strict";
+var editor_{{ elementid }};
+$(function () {
+     editor_{{ elementid }} = new SimpleMDE({
+        autofocus: true,
+        element: document.getElementById("{{ elementid }}"),
+        spellChecker: false,
+        status: false,
+        autosave: {
+            enabled: false,
+            delay: 5000,
+            uniqueId: "{{ uniqueid }}"
+        },
+        tabSize: 4,
+        toolbar: [
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "strikethrough",
+            "quote",
+            "|",
+            "unordered-list",
+            "ordered-list",
+            "|",
+            "link",
+            "image",
+            "table",
+            "horizontal-rule",
+            "|",
+            "preview",
+            "side-by-side",
+            "fullscreen",
+            "|",
+            {
+                name: "guide",
+                action: "https://guides.github.com/features/mastering-markdown/",
+                className: "fa fa-star",
+                title: "Mastering Markdown (Formatting help)"
+            },
+            {
+                name: "emoji",
+                action: "http://www.webpagefx.com/tools/emoji-cheat-sheet/",
+                className: "fa fa-smile-o",
+                title: "Emoji cheat sheet"
+            }
+        ]
+    });
+{#        editor.codemirror.on("change", function() { setTimeout(function() { emojify.run(); }, 0) });#}
+{#  fixme: For hiding/showing the navbar on swapping fullscreen (https://github.com/NextStepWebs/simplemde-markdown-editor/issues/438)  #}
+    const oldEditorSetOption = editor_{{ elementid }}.codemirror.setOption;
+    editor_{{ elementid }}.codemirror.setOption = function(option, value) {
+        oldEditorSetOption.apply(this, arguments);
+        if (option === 'fullScreen') {
+            if (value) $(".navbar").hide();
+            else $(".navbar").show();
+        }
+{#            setTimeout(function() { emojify.run(); }, 0)#}
+    };
+    $("#form").submit(function() { editor_{{ elementid }}.clearAutosavedValue(); });
+});
+</script>
+{% endmacro %}

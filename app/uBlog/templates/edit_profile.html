@@ -7,69 +7,7 @@
 {% block script %}
     {{ super() }}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.js" integrity="sha256-6sZs7OGP0Uzcl7UDsLaNsy1K0KTZx1+6yEVrRJMn2IM=" crossorigin="anonymous"></script>
-    <script>
-    "use strict";
-    var editor;
-    $(function () {
-         editor = new SimpleMDE({
-            autofocus: true,
-            element: document.getElementById("bio"),
-            spellChecker: false,
-            status: false,
-            autosave: {
-                enabled: false,
-                delay: 5000,
-                uniqueId: "{{ uniqueid }}"
-            },
-            tabSize: 4,
-            toolbar: [
-                "heading",
-                "|",
-                "bold",
-                "italic",
-                "strikethrough",
-                "quote",
-                "|",
-                "unordered-list",
-                "ordered-list",
-                "|",
-                "link",
-                "image",
-                "table",
-                "horizontal-rule",
-                "|",
-                "preview",
-                "side-by-side",
-                "fullscreen",
-                "|",
-                {
-                    name: "guide",
-                    action: "https://guides.github.com/features/mastering-markdown/",
-                    className: "fa fa-star",
-                    title: "Mastering Markdown (Formatting help)"
-                },
-                {
-                    name: "emoji",
-                    action: "http://www.webpagefx.com/tools/emoji-cheat-sheet/",
-                    className: "fa fa-smile-o",
-                    title: "Emoji cheat sheet"
-                }
-            ]
-        });
-
-        // fixme: For hiding/showing the navbar on swapping fullscreen (https://github.com/NextStepWebs/simplemde-markdown-editor/issues/438)
-        const oldEditorSetOption = editor.codemirror.setOption;
-        editor.codemirror.setOption = function(option, value) {
-            oldEditorSetOption.apply(this, arguments);
-            if (option === 'fullScreen') {
-                if (value) $(".navbar").hide();
-                else $(".navbar").show();
-            }
-        };
-
-        $("#form").submit(function() { editor.clearAutosavedValue(); });
-    });
-    </script>
+    {{ macros.simpleMDE('bio', uniqueid) }}
 {% endblock %}
 {% block content %}
     <form id="form" method="post">
@@ -79,17 +17,13 @@
                 <label class="form-control-label" for="name">Name</label>
                 {{ form.name(class="form-control") }}
                 <small class="form-text text-muted">A human readable name. Must be unique.</small>
-                {% if form.name.errors %}
-                    {% for error in form.name.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
-                {% endif %}
+                {% for error in form.name.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
             </div>
             <div class="col-sm-6 form-group{{ ' has-danger' if form.email.errors }}">
                 <label class="form-control-label" for="email">Email</label>
                 {{ form.email(class="form-control") }}
-                {% if form.email.errors %}
-                    {% for error in form.email.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
-                {% endif %}
                 <small class="form-text text-muted">A confirmation email will be send. Must be unique.</small>
+                {% for error in form.email.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
             </div>
         </div>
         <div class="row">
@@ -103,9 +37,7 @@
         <div class="form-group{{ ' has-danger' if form.bio.errors }}">
             <label class="form-control-label" for="bio">Bio</label>
             {{ form.bio() }}
-            {% if form.bio.errors %}
-                {% for error in form.bio.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
-            {% endif %}
+            {% for error in form.bio.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
         </div>
         <div class="form-group">
             {{ form.save(class="btn btn-primary") }}

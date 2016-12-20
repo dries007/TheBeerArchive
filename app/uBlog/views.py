@@ -18,9 +18,28 @@ from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, 
 from uBlog.helpers import make_markdown
 
 
+# todo: authentication!!
+
+
 @app.errorhandler(HTTPException)
 def any_error(e):
     return render_template('error.html', e=e), e.code
+
+
+@app.route("/")
+def index():
+    page = Page.query.get(0)
+    if page is None:
+        raise NotFound('No index page!\nThe index page always has page id 0.')
+    return render_template('page.html', page=page)
+
+
+@app.route("/<name>")
+def any_page(name):
+    page = Page.query.filter_by(name=name).first()
+    if page is None:
+        raise NotFound('Page %s not found.' % name)
+    return render_template('page.html', page=page)
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -41,6 +60,14 @@ def login():
     return render_template('login.html', form=form)
 
 
+@app.route("/logout")
+def logout():
+    db.session.add(current_user)
+    db.session.commit()
+    logout_user()
+    return redirect(request.args.get('next') or '/')
+
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
@@ -50,17 +77,28 @@ def register():
         db.session.add(user)
         db.session.commit()
         login_user(user)
-        # todo: email verification?
-        # flash('You still need to verify your email address before your account will be activated.', 'warning')
+        flash('You still need to verify your email address before your account will be activated.', 'warning')
+        return redirect(request.args.get('next') or '/profile')
     return render_template('register.html', form=form)
 
 
-@app.route("/logout")
-def logout():
-    db.session.add(current_user)
-    db.session.commit()
-    logout_user()
-    return redirect(request.args.get('next') or '/')
+@app.route("/profile")
+@login_required
+def own_profile():
+    return render_template('profile.html', profile=current_user, own_profile=True)
+
+
+@app.route("/edit/profile", methods=['GET', 'POST'])
+@login_required
+def profile_edit():
+    user = User.query.get(current_user.id)
+    form = ProfileEditForm(obj=user)
+    if form.save.data and form.validate_on_submit():
+        form.populate_obj(user)
+        user.bio_html = make_markdown(user.bio, empty='<p class="text-muted">This user has no bio set.</p>', clazz="md md-profile")
+        db.session.add(user)
+        db.session.commit()
+    return render_template('edit_profile.html', form=form, uniqueid="user-%d" % user.id)
 
 
 @app.route("/profile/<int:id>")
@@ -71,29 +109,6 @@ def profile(id):
     return render_template('profile.html', profile=user, own_profile=False)
 
 
-@app.route("/profile")
-@login_required
-def own_profile():
-    return render_template('profile.html', profile=current_user, own_profile=True)
-
-
-@app.route("/")
-def index():
-    page = Page.query.get(0)
-    if page is None:
-        raise NotFound('No index page!\nThe index page always has page id 0.')
-    return render_template('page.html', page=page)
-
-
-@app.route("/<name>")
-def any_page(name):
-    page = Page.query.filter_by(name=name).first()
-    if page is None:
-        raise NotFound('Page %s not found.' % name)
-    return render_template('page.html', page=page)
-
-
-# todo: authentication!!
 @app.route("/edit/page/<int:page_id>", methods=['GET', 'POST'])
 @app.route("/edit/page/", methods=['GET', 'POST'])
 @login_required
@@ -115,19 +130,6 @@ def page_edit(page_id=-1):
         if page_id == -1:
             return redirect('/edit/page/%d' % page_id)
     return render_template('edit_page.html', form=form, title=page.title, uniqueid="page-%d" % page_id)
-
-
-@app.route("/edit/profile", methods=['GET', 'POST'])
-@login_required
-def profile_edit():
-    user = User.query.get(current_user.id)
-    form = ProfileEditForm(obj=user)
-    if form.save.data and form.validate_on_submit():
-        form.populate_obj(user)
-        user.bio_html = make_markdown(user.bio, empty='<p class="text-muted">This user has no bio set.</p>', clazz="md md-profile")
-        db.session.add(user)
-        db.session.commit()
-    return render_template('edit_profile.html', form=form, uniqueid="user-%d" % user.id)
 
 
 @app.route("/edit/post/<int:post_id>", methods=['GET', 'POST'])
@@ -168,7 +170,7 @@ def post_delete(post_id):
     post = Post.query.get(post_id)
     if post is None:
         raise NotFound('Post %d not found.' % post_id)
-    name = post.page.name
+    post.active = False
     db.session.delete(post)
     db.session.commit()
-    return redirect('/%s' % name)
+    return redirect('/%s' % post.page.name)

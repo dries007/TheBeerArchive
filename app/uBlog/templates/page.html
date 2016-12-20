@@ -2,14 +2,22 @@
 {% block title %}{{ page.title }}{% endblock %}
 {% block content %}
     {% if user.is_authenticated %}
-    <div class="pull-right">
-        <a class="btn btn-outline-secondary" role="button" href="/edit/page/{{ page.id }}"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+    <div class="pull-right btn-group">
+        <a class="btn btn-sm btn-outline-secondary" role="button" href="/edit/page/{{ page.id }}"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+        <a class="btn btn-sm btn-outline-secondary" role="button" href="/edit/post?page={{ page.id }}"><i class="fa fa-plus" aria-hidden="true"></i> Post</a>
     </div>
     {% endif %}
     <div>{{ page.content_html | safe }}</div>
-    {% for post in page.posts %}
-    <div class="{{ post.clazz or "post" }}">
-        {{ post.content_html | safe }}
-    </div>
+    {% for post in page.posts.order_by('published').all() %}
+        {% if loop.first %}<hr>{% endif %}
+        {# TODO: add admin controls #}
+        {% if post.user_id == user.id %}
+            <div class="pull-right"><a class="btn btn-sm btn-outline-secondary" role="button" href="/edit/post/{{ post.id }}"><i class="fa fa-fw fa-edit"></i></a></div>
+        {% endif %}
+        <div class="post">
+            {{ post.content_html | safe }}
+        </div>
+        <div class="post-meta text-muted font-italic"><small>By <a class="hide" href="/profile/{{ post.author.id }}">{{ post.author.name }}</a>. Published {{ post.published | timedelta }}. {% if (post.last_edit - post.published).total_seconds() > 10*60 %}Last edit {{ post.last_edit | timedelta }}{% endif %}</small></div>
+        {% if not loop.last %}<hr>{% endif %}
     {% endfor %}
 {% endblock %}

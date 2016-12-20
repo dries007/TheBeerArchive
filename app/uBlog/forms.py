@@ -1,5 +1,5 @@
 from flask_wtf import Form
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import PasswordField, SubmitField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import InputRequired, Length, Email
 from wtforms_alchemy import model_form_factory
@@ -50,6 +50,7 @@ class PageEditForm(ModelForm):
         only = ['name', 'title', 'content']
 
 
+# todo: do email checking
 class ProfileEditForm(ModelForm):
     save = SubmitField('Save')
 

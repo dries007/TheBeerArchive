@@ -6,6 +6,7 @@ from flask_login import current_user
 from lxml.html import clean
 from mdx_gfm import GithubFlavoredMarkdownExtension
 import markdown
+import humanize
 
 from uBlog import lm, app
 from uBlog.models import User, Config
@@ -29,6 +30,11 @@ def filter_date(datetime):
 @app.template_filter('nl2br')
 def filter_nl2br(text):
     return None if text is None else Markup('<br/>\n'.join(escape(text).splitlines()))
+
+
+@app.template_filter('timedelta')
+def filter_timedelta(datetime):
+    return None if datetime is None else humanize.naturaltime(datetime)
 
 
 class SimpleTextReplacePattern(markdown.inlinepatterns.Pattern):

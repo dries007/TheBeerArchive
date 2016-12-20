@@ -22,6 +22,7 @@ class User(db.Model):
     bio_html = db.Column(db.Text)
     emojis = db.Column(db.Boolean, nullable=False, default=True)
     showEmail = db.Column(db.Boolean, nullable=False, default=False)
+
     posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     @property
@@ -58,11 +59,12 @@ class Page(db.Model):
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    clazz = db.Column(db.String)
     content = db.Column(db.Text, nullable=False)
     content_html = db.Column(db.Text)
     published = db.Column(db.DateTime)
     last_edit = db.Column(db.DateTime)
+    active = db.Column(db.Boolean, default=True)
+
     page_id = db.Column(db.Integer, db.ForeignKey('page.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
