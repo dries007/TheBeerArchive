@@ -29,7 +29,7 @@
         </div>
         <div class="form-group{{ ' has-danger' if form.content.errors }}">
             <label class="form-control-label" for="content">Content</label>
-            {{ form.content() }}
+            {{ form.content(class="form-control", style="height: 25rem;") }}
             {% for error in form.content.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
         </div>
         <div class="form-group">
