@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Administration{% endblock %}
+{% block content %}
+    {{ super() }}
+
+    <div class="pull-right btn-group btn-group-sm">
+        <a href="/edit/page/" class="btn btn-secondary" title="New Page"><i class="fa fa-fw fa-file-o"></i></a>
+    </div>
+    <h2>Pages</h2>
+
+    <table class="table table-hover table-sm">
+    <thead><tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Title</th>
+        <th></th>
+    </tr></thead>
+    <tbody>
+        {% for page in pages %}
+        <tr {% if page.id == 0 %}class="table-info" title="Page ID 0 is always the root page."{% endif %}>
+            <td>{{ page.id }}</td>
+            <td><a href="/{{ page.name }}">{{ page.name }}</a></td>
+            <td>{{ page.title }}</td>
+            <td class="text-xs-right"><a href="/edit/page/{{ page.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+    <h2>Users</h2>
+    <table class="table table-hover table-sm">
+    <thead><tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th></th>
+    </tr></thead>
+    <tbody>
+        {% for user in users %}
+        <tr class="{{ 'table-danger' if not user.active else ('table-warning' if user.admin else ('table-success' if user.brewer)) }}">
+            <td>{{ user.id }}</td>
+            <td><a href="/profile/{{ user.id }}">{{ user.name }}</a></td>
+            <td title="Email{{ ' not' if not user.showEmail }} public">
+                <span class="pull-right"><i class="fa fa-fw fa-eye{{ '-slash' if not user.showEmail }}"></i></span>{{ user.email }}
+            </td>
+            <td title="{{ ['Admin' if user.admin, 'Brewer' if user.brewer, 'Not active' if not user.active]|select('defined')|join(', ') }}">
+                {% if not user.active %}<i class="fa fa-fw fa-exclamation" title="Not active"></i>{% endif %}
+                {% if user.admin %}<i class="fa fa-fw fa-bolt" title="Admin"></i>{% endif %}
+                {% if user.brewer %}<i class="fa fa-fw fa-beer" title="Brewer"></i>{% endif %}
+            </td>
+            <td class="text-xs-right">
+                {% if not user.active %}
+                <button class="btn btn-sm btn-danger" title="Manually activate" onclick="activate({{ user.id }})"><i class="fa fa-fw fa-exclamation"></i></button>
+                {% else %}
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-danger" title="Toggle Admin" {{ 'disabled' if user == current_user else 'onclick=admin(' + user.id|string + ')' }}><i class="fa fa-fw fa-bolt"></i></button>
+                    <button class="btn btn-warning" title="Toggle Brewer" onclick="brewer({{ user.id }})"><i class="fa fa-fw fa-beer"></i></button>
+                </div>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+    <h2>Beers</h2>
+    <table class="table table-hover table-sm">
+    <thead><tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Brewer</th>
+        <th></th>
+    </tr></thead>
+    <tbody>
+        {% for beer in beers|reverse %}
+        <tr>
+            <td>{{ beer.id }}</td>
+            <td>
+                {% if not beer.listed %}<span class="pull-right" title="Unlisted"><i class="fa fa-fw fa-eye-slash"></i></span>{% endif %}
+                <a href="/beer/{{ beer.id }}">{{ beer.name }}</a>
+            </td>
+            <td>{{ beer.brewer.name }}</td>
+            <td class="text-xs-right"><a href="/edit/beer/{{ beer.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+{% endblock %}
+{% block script %}
+    {{ super() }}
+    <script>
+    "use strict";
+
+    function activate(userid)
+    {
+        //todo: implement AJAX
+        console.info('activate ' + userid)
+    }
+
+    function admin(userid)
+    {
+        //todo: implement AJAX
+        console.info('admin ' + userid)
+    }
+
+    function brewer(userid)
+    {
+        //todo: implement AJAX
+        console.info('brewer ' + userid)
+    }
+    </script>
+{% endblock %}

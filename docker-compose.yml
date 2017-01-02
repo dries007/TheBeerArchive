@@ -51,6 +51,7 @@ services:
         ports:
             - "5000:5000" # todo: remove
         command: "python -m uBlog runserver --host=0.0.0.0"
+#        command: "sleep 1000"
 
 volumes:
     db_volume:

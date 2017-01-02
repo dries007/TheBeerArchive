@@ -11,10 +11,12 @@ from flask_login import login_required
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import Forbidden
 
 from uBlog import db, app
-from uBlog.models import User, Page, Post
-from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, PostEditForm
+from uBlog.models import User, Page, Post, Beer
+from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, PostEditForm, BeerEditForm
 from uBlog.helpers import make_markdown
 
 
@@ -27,7 +29,7 @@ def any_error(e):
 
 
 @app.route("/")
-def index():
+def view_index():
     page = Page.query.get(0)
     if page is None:
         raise NotFound('No index page!\nThe index page always has page id 0.')
@@ -35,7 +37,7 @@ def index():
 
 
 @app.route("/<name>")
-def any_page(name):
+def view_any_page(name):
     page = Page.query.filter_by(name=name).first()
     if page is None:
         raise NotFound('Page %s not found.' % name)
@@ -43,7 +45,7 @@ def any_page(name):
 
 
 @app.route("/login", methods=['GET', 'POST'])
-def login():
+def view_login():
     if current_user.is_authenticated:
         return redirect(request.args.get('next') or '/profile')
     form = LoginForm()
@@ -61,7 +63,7 @@ def login():
 
 
 @app.route("/logout")
-def logout():
+def view_logout():
     db.session.add(current_user)
     db.session.commit()
     logout_user()
@@ -69,7 +71,7 @@ def logout():
 
 
 @app.route("/register", methods=['GET', 'POST'])
-def register():
+def view_register():
     form = RegisterForm()
     if form.register.data and form.validate_on_submit():
         user = User()
@@ -77,20 +79,67 @@ def register():
         db.session.add(user)
         db.session.commit()
         login_user(user)
+        # todo: Actually check email
         flash('You still need to verify your email address before your account will be activated.', 'warning')
         return redirect(request.args.get('next') or '/profile')
     return render_template('register.html', form=form)
 
 
+@app.route("/beers")
+@app.route("/beer")
+def view_beers():
+    return render_template('beers.html')
+
+
+@app.route("/beer/<int:beer_id>")
+def view_beer(beer_id):
+    beer = Beer.query.get(beer_id)
+    if beer is None:
+        raise NotFound('Beer %s not found.' % beer_id)
+    return render_template('beer.html', beer=beer)
+
+
+@app.route("/edit/beer/<int:beer_id>", methods=['GET', 'POST'])
+@app.route("/edit/beer/", methods=['GET', 'POST'])
+@login_required
+def view_beer_edit(beer_id=None):
+    if beer_id is None:
+        if not current_user.brewer:
+            raise Forbidden('You are not allowed to make new beers.')
+        beer = Beer()
+    else:
+        beer = Beer.query.get(beer_id)
+        if beer is None:
+            raise NotFound('Beer %s not found.' % beer_id)
+        if current_user.id != beer.user_id and not current_user.admin:
+            raise Forbidden('This is not your beer to edit.')
+
+    form = BeerEditForm(obj=beer)
+
+    if form.save.data and form.validate_on_submit():
+        form.populate_obj(beer)
+        if beer.published is None:
+            beer.published = datetime.datetime.utcnow()
+            beer.user_id = current_user.id
+        beer.last_edit = datetime.datetime.utcnow()
+        beer.content_html = make_markdown(beer.content, clazz="md md-page")
+        db.session.add(beer)
+        db.session.commit()
+        db.session.refresh(beer)
+        if beer_id is None:
+            return redirect('/beer/%d' % beer.id)
+    return render_template('edit_beer.html', form=form, title=beer.name, uniqueid="beer-%s" % beer_id)
+
+
 @app.route("/profile")
 @login_required
-def own_profile():
+def view_own_profile():
     return render_template('profile.html', profile=current_user, own_profile=True)
 
 
 @app.route("/edit/profile", methods=['GET', 'POST'])
 @login_required
-def profile_edit():
+def view_profile_edit():
     user = User.query.get(current_user.id)
     form = ProfileEditForm(obj=user)
     if form.save.data and form.validate_on_submit():
@@ -98,11 +147,11 @@ def profile_edit():
         user.bio_html = make_markdown(user.bio, empty='<p class="text-muted">This user has no bio set.</p>', clazz="md md-profile")
         db.session.add(user)
         db.session.commit()
-    return render_template('edit_profile.html', form=form, uniqueid="user-%d" % user.id)
+    return render_template('edit_profile.html', form=form, uniqueid="user-%s" % user.id)
 
 
 @app.route("/profile/<int:id>")
-def profile(id):
+def view_profile(id):
     user = User.query.get(id)
     if user is None:
         raise NotFound("User %d not found." % id)
@@ -112,7 +161,10 @@ def profile(id):
 @app.route("/edit/page/<int:page_id>", methods=['GET', 'POST'])
 @app.route("/edit/page/", methods=['GET', 'POST'])
 @login_required
-def page_edit(page_id=-1):
+def view_page_edit(page_id=-1):
+    if not current_user.admin:
+        raise Forbidden('You are not allowed to make or edit pages.')
+
     if page_id == -1:
         page = Page()
     else:
@@ -132,18 +184,34 @@ def page_edit(page_id=-1):
     return render_template('edit_page.html', form=form, title=page.title, uniqueid="page-%d" % page_id)
 
 
+@app.route("/admin")
+@login_required
+def view_admin():
+    if not current_user.admin:
+        raise Forbidden('You are not an admin.')
+
+    return render_template('admin.html', users=User.query.order_by(User.id).all())
+
+
 @app.route("/edit/post/<int:post_id>", methods=['GET', 'POST'])
 @app.route("/edit/post", methods=['GET', 'POST'])
 @login_required
-def post_edit(post_id=-1):
-    if post_id == -1:
-        page_id = int(request.args.get('page'))
-        page = Page.query.get(page_id)
-        if page is None:
-            raise NotFound('Page %d not found.' % page_id)
-        post = Post(page)
+def view_post_edit(post_id=None):
+    if post_id is None:
+        if not request.args.get('beer'):
+            raise BadRequest('Missing beer data.')
+        page_id = int(request.args.get('beer'))
+        beer = Beer.query.get(page_id)
+        if beer is None:
+            raise NotFound('Beer %d not found.' % page_id)
+        if beer.user_id != current_user.id and not current_user.admin:
+            raise Forbidden('This is not your beer. You can\'t post to it.')
+        post = Post(beer)
     else:
         post = Post.query.get(post_id)
+        if post.user_id != current_user.id and not current_user.admin:
+            raise Forbidden('This is not your post. You can\'t edit it.')
+        beer = post.beer
         if post is None:
             raise NotFound('Post %d not found.' % post_id)
 
@@ -152,25 +220,23 @@ def post_edit(post_id=-1):
         form.populate_obj(post)
         if post.published is None:
             post.published = datetime.datetime.utcnow()
-        post.user_id = current_user.id
+            post.user_id = current_user.id
         post.last_edit = datetime.datetime.utcnow()
         post.content_html = make_markdown(post.content, clazz="md md-page")
         db.session.add(post)
         db.session.commit()
-        db.session.refresh(post)
-        post_id = post.id
-        if post_id == -1:
-            return redirect('/edit/post/%d' % post_id)
-    return render_template('edit_post.html', form=form, new=post_id == -1, uniqueid="post-%d" % post_id, post=post)
+        if post_id is None:
+            return redirect('/beer/%d' % beer.id)
+    return render_template('edit_post.html', form=form, new=post_id is None, uniqueid="post-%s" % post_id, post=post, beer=beer)
 
 
 @app.route("/del/post/<int:post_id>", methods=['GET', 'POST'])
 @login_required
-def post_delete(post_id):
+def view_post_delete(post_id):
     post = Post.query.get(post_id)
     if post is None:
         raise NotFound('Post %d not found.' % post_id)
     post.active = False
     db.session.delete(post)
     db.session.commit()
-    return redirect('/%s' % post.page.name)
+    return redirect('/beer/%d' % post.beer_id)

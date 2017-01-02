@@ -36,3 +36,21 @@ a.hide:active {
     text-decoration: underline;
     color: inherit;
 }
+
+img.emoji {
+    width: 1.5em;
+    height: 1.5em;
+    display: inline-block;
+    margin-bottom: -.25em;
+    background-size: contain;
+}
+
+@font-face {
+    font-family: "Deutsche Zierschrift";
+    src: url("deutschezierschrift.ttf");
+    src: local("Deutsche Zierschrift");
+}
+.logo-font
+{
+    font-family: "Deutsche Zierschrift";
+}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}The Beer List{% endblock %}
+{% block content %}
+    {{ super() }}
+    <table class="table table-sm">
+    <thead><tr>
+        <th>Name</th>
+        <th>Brewer</th>
+        <th>Published</th>
+        <th>Last Update</th>
+    </tr></thead>
+    <tbody>
+        {% for beer in beers|reverse if beer.listed %}
+        <tr>
+            <td><a class="hide" href="/beer/{{ beer.id }}">{{ beer.name }}</a></td>
+            <td>{{ beer.brewer.name }}</td>
+            <td>{{ beer.published|date }}</td>
+            <td>{{ beer.last_update()|timedelta }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}

@@ -36,7 +36,7 @@
         </div>
         <div class="form-group{{ ' has-danger' if form.bio.errors }}">
             <label class="form-control-label" for="bio">Bio</label>
-            {{ form.content(class="form-control", style="height: 25rem;") }}
+            {{ form.bio(class="form-control", style="height: 25rem;") }}
             {% for error in form.bio.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
         </div>
         <div class="form-group">

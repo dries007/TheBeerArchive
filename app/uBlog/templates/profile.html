@@ -17,6 +17,8 @@
         <dt class="col-sm-3">Emojis</dt>    <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.emojis else 'times' }}"></i></dd>
         {% endif %}
         <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
+        <dt class="col-sm-3">Brewer</dt>    <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.brewer else 'times' }}"></i></dd>
+        <dt class="col-sm-3">Admin</dt>     <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.admin else 'times' }}"></i></dd>
     </dl>
     {% if request.path == "/profile" %}
     <a href="/profile/{{ profile.id }}">Public link</a>

@@ -5,10 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>{% block title %}{{ config.title }}!{% endblock %}</title>
+    <title>{% block title %}Dries007's Beer Bunker{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha256-mIfhv/h3MLq3WSiSlduuZO3saRNzzuf1LK8w3z3l3JY=" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha256-NuCn4IvuZXdBaFKJOAcsU2Q3ZpwbdFisd5dux4jkQ5w=" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/css/basic/emojify.min.css" integrity="sha256-UOrvMOsSDSrW6szVLe8ZDZezBxh5IoIfgTwdNDgTjiU=" crossorigin="anonymous" />
     {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">{% endblock %}
 </head>
 <body>
@@ -21,10 +20,40 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">{{ config.title }}</a>
+            <a class="navbar-brand" href="/">DBB</a>
             <div id="navbar">
-                {{- macros.menu(config.menu_left, 'float-xs-left') if config.menu_left -}}
-                {{- macros.menu(config.menu_right, 'float-xs-right') if config.menu_right -}}
+                <nav class="nav navbar-nav float-xs-left">
+                    {% for page in pages if page.menu_left %}
+                    <a href="/{{ page.name }}" class="nav-item nav-link">{{ page.title }}</a>
+                    {% endfor %}
+                    <div class="nav-item dropdown">
+                        <a href="/beers" class="nav-link dropdown-toggle" data-toggle="dropdown">Beers</a>
+                        <div class="dropdown-menu">
+                            <a href="/beers" class="dropdown-item">The Beer List</a>
+                            <div class="dropdown-divider"></div>
+                            {% for beer in beers|reverse if beer.listed %}
+                            <a href="/beer/{{ beer.id }}" class="dropdown-item">{{ beer.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </nav>
+                <nav class="nav navbar-nav float-xs-right">
+                    {% for page in pages if page.menu_right %}
+                    <a href="/{{ page.name }}" class="nav-item nav-link">{{ page.title }}</a>
+                    {% endfor %}
+                    {% if user.is_anonymous %}
+                    <a href="/login" class="nav-item nav-link">Login</a>
+                    {% else %}
+                        {% if user.brewer %}
+                            <a href="/edit/beer" class="nav-item nav-link">New Beer</a>
+                        {% endif %}
+                        {% if user.admin %}
+                            <a href="/admin" class="nav-item nav-link">Admin</a>
+                        {% endif %}
+                    <a href="/profile" class="nav-item nav-link">Profile</a>
+                    <a href="/logout" class="nav-item nav-link">Logout</a>
+                    {% endif %}
+                </nav>
             </div>
         </div>
     </nav>

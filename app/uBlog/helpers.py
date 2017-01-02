@@ -1,5 +1,4 @@
 from flask import Markup
-from flask import request
 from flask import escape
 from flask_login import current_user
 
@@ -9,7 +8,7 @@ import markdown
 import humanize
 
 from uBlog import lm, app
-from uBlog.models import User, Config
+from uBlog.models import User, Page, Beer
 
 
 @lm.user_loader
@@ -19,7 +18,7 @@ def load_user(id):
 
 @app.context_processor
 def context_processor():
-    return dict(user=current_user, config=Config.query.get(0).data)
+    return dict(user=current_user, pages=Page.query.order_by(Page.id).all(), beers=Beer.query.order_by(Beer.id).all())
 
 
 @app.template_filter('date')
@@ -67,25 +66,25 @@ def make_markdown(text, empty='<div class="md"></div>', clazz='md'):
 def filter_markdown(text):
     return Markup(make_markdown(text))
 
-
-def _test_menu_condition(condition):
-    if condition['name'] == 'isurl':
-        return condition.get('inverted', False) != (condition['data'] == request.path)
-    elif condition['name'] == 'inurl':
-        return condition.get('inverted', False) != (condition['data'] in request.path)
-    elif condition['name'] == 'authenticated':
-        return condition.get('inverted', False) != current_user.is_authenticated
-    elif condition['name'] == 'active':
-        return condition.get('inverted', False) != current_user.is_active
-    elif condition['name'] == 'anonymous':
-        return condition.get('inverted', False) != current_user.is_anonymous
-    else:
-        raise Exception('Condition unknown.', condition)
-    pass
-
-
-@app.template_test('menu_conditions')
-def test_menu_conditions(item):
-    if type(item) is str or 'conditions' not in item:
-        return True
-    return all(map(_test_menu_condition, item['conditions']))
+# Nice idea in theory, too much work though
+# def _test_menu_condition(condition):
+#     if condition['name'] == 'isurl':
+#         return condition.get('inverted', False) != (condition['data'] == request.path)
+#     elif condition['name'] == 'inurl':
+#         return condition.get('inverted', False) != (condition['data'] in request.path)
+#     elif condition['name'] == 'authenticated':
+#         return condition.get('inverted', False) != current_user.is_authenticated
+#     elif condition['name'] == 'active':
+#         return condition.get('inverted', False) != current_user.is_active
+#     elif condition['name'] == 'anonymous':
+#         return condition.get('inverted', False) != current_user.is_anonymous
+#     else:
+#         raise Exception('Condition unknown.', condition)
+#     pass
+#
+#
+# @app.template_test('menu_conditions')
+# def test_menu_conditions(item):
+#     if type(item) is str or 'conditions' not in item:
+#         return True
+#     return all(map(_test_menu_condition, item['conditions']))

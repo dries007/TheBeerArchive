@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
-{% block title %}Edit {{ title or 'new page' }}{% endblock %}
+{% block title %}Edit {{ title or 'New Page' }}{% endblock %}
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css" integrity="sha256-Is0XNfNX8KF/70J2nv8Qe6BWyiXrtFxKfJBHoDgNAEM=" crossorigin="anonymous" />
@@ -25,6 +25,20 @@
                 {{ form.name(class="form-control") }}
                 {% for error in form.name.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
                 <small class="form-text text-muted">Used as page URL. Must be unique. Alphanumerical and underscores only.</small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 form-check">
+                <label class="form-check-label" for="menu_left">
+                {{ form.menu_left(class="form-check-inline") }}
+                Show on left menu
+                </label>
+            </div>
+            <div class="col-sm-6 form-check">
+                <label class="form-check-label" for="menu_right">
+                {{ form.menu_right(class="form-check-inline") }}
+                Show on right menu
+                </label>
             </div>
         </div>
         <div class="form-group{{ ' has-danger' if form.content.errors }}">

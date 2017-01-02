@@ -5,7 +5,7 @@ from wtforms.validators import InputRequired, Length, Email
 from wtforms_alchemy import model_form_factory
 
 from uBlog import db
-from uBlog.models import User, Page, Post
+from uBlog.models import User, Page, Post, Beer
 
 
 BaseModelForm = model_form_factory(Form)
@@ -42,12 +42,20 @@ class LoginForm(ModelForm):
 # name = StringField('name', validators=[InputRequired(), Regexp("^\w+$", re.IGNORECASE, message="Must be alphanumerical and underscores only.")])
 
 
+class BeerEditForm(ModelForm):
+    save = SubmitField('Save')
+
+    class Meta:
+        model = Beer
+        only = ['name', 'content', 'listed']
+
+
 class PageEditForm(ModelForm):
     save = SubmitField('Save')
 
     class Meta:
         model = Page
-        only = ['name', 'title', 'content']
+        only = ['name', 'title', 'content', 'menu_left', 'menu_right']
 
 
 # todo: do email checking

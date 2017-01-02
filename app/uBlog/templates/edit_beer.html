@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
-{% block title %}{{ 'New Post' if new else ('Edit post %d' % post.id) }}{% endblock %}
+{% block title %}Edit {{ title or 'New Beer' }}{% endblock %}
 {% block head %}
     {{ super() }}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplemde/1.11.2/simplemde.min.css" integrity="sha256-Is0XNfNX8KF/70J2nv8Qe6BWyiXrtFxKfJBHoDgNAEM=" crossorigin="anonymous" />
@@ -11,9 +11,20 @@
     {{ macros.simpleMDE('content', uniqueid) }}
 {% endblock %}
 {% block content %}
-    <h1>{{ 'New Post' if new else 'Edit post' }} on {{ beer.name }}</h1>
     <form id="form" method="post">
         {{ form.hidden_tag() }}
+        <div class="form-group{{ ' has-danger' if form.name.errors }}">
+            <label class="form-control-label" for="name">Beer Name</label>
+            {{ form.name(class="form-control") }}
+            {% for error in form.name.errors %}<div class="form-control-feedback">{{ error }}</div>{% endfor %}
+            <small class="form-text text-muted">Must be unique. Alphanumerical and underscores only.</small>
+        </div>
+        <div class="form-check">
+            <label class="form-check-label" for="listed">
+            {{ form.listed(class="form-check-inline") }}
+            Listed
+            </label>
+        </div>
         <div class="form-group{{ ' has-danger' if form.content.errors }}">
             <label class="form-control-label" for="content">Content</label>
             {{ form.content(class="form-control", style="height: 25rem;") }}
@@ -21,7 +32,6 @@
         </div>
         <div class="form-group">
             {{ form.save(class="btn btn-primary") }}
-            {% if not new %}<a class="btn btn-danger" role="button" href="/del/post/{{ post.id }}">Delete Post</a>{% endif %}
         </div>
     </form>
 {% endblock %}
