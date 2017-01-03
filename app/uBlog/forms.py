@@ -16,12 +16,11 @@ class ModelForm(BaseModelForm):
     def get_session(cls):
         return db.session
 
-
-class ProfileForm(ModelForm):
-    login = SubmitField('Log in')
-
-    class Meta:
-        model = User
+# class ProfileForm(ModelForm):
+#     login = SubmitField('Log in')
+#
+#     class Meta:
+#         model = User
 
 
 class RegisterForm(ModelForm):
@@ -64,7 +63,7 @@ class ProfileEditForm(ModelForm):
 
     class Meta:
         model = User
-        only = ['name', 'email', 'bio', 'emojis']
+        only = ['name', 'email', 'bio', 'emojis', 'show_email']
 
 
 class PostEditForm(ModelForm):

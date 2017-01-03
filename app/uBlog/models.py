@@ -8,7 +8,6 @@ from uBlog import db
 
 force_auto_coercion()
 
-
 # class Config(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)
 #     data = db.Column(db.JSON, nullable=False)
@@ -23,9 +22,10 @@ class User(db.Model):
     bio = db.Column(db.Text, nullable=False, default='', server_default='')
     bio_html = db.Column(db.Text)
     emojis = db.Column(db.Boolean, nullable=False, default=True, server_default=text('TRUE'))
-    showEmail = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
+    show_email = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     brewer = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     admin = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
+    json = db.Column(db.JSON, nullable=True)
 
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     beers = db.relationship('Beer', backref='brewer', lazy='dynamic')

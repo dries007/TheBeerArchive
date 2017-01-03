@@ -1,26 +1,43 @@
 {% extends "base.html" %}
 {% block title %}{{ profile.name }}'s profile{% endblock %}
 {% block content %}
-    {% if own_profile %}
     <div class="pull-right">
+        {% if own_profile %}
         <a class="btn btn-sm btn-outline-secondary" role="button" href="/edit/profile"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+        {% elif user.admin %}
+        <button class="btn btn-sm btn-outline-warning" onclick="erase()"><i class="fa fa-eraser" aria-hidden="true"></i> Erase Bio</button>
+        {% endif %}
     </div>
-    {% endif %}
     <dl class="row">
         <dt class="col-sm-3">Gravatar</dt>  <dd class="col-sm-9"><img src="{{ profile.email | gravatar(size=200) }}" class="rounded" alt="Avatar provided by Gravatar"></dd>
         <dt class="col-sm-3">User id</dt>   <dd class="col-sm-9">{{ profile.id }}</dd>
         <dt class="col-sm-3">Name</dt>      <dd class="col-sm-9">{{ profile.name }}</dd>
-        {% if own_profile or user.showEmail %}
+        {% if own_profile or user.show_email %}
         <dt class="col-sm-3">Email</dt>     <dd class="col-sm-9">{{ profile.email }}</dd>
         {% endif %}
         {% if own_profile %}
+        <dt class="col-sm-3">Email Public</dt><dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.show_email else 'times' }}"></i></dd>
         <dt class="col-sm-3">Emojis</dt>    <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.emojis else 'times' }}"></i></dd>
         {% endif %}
-        <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
         <dt class="col-sm-3">Brewer</dt>    <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.brewer else 'times' }}"></i></dd>
         <dt class="col-sm-3">Admin</dt>     <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.admin else 'times' }}"></i></dd>
+        <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
     </dl>
     {% if request.path == "/profile" %}
     <a href="/profile/{{ profile.id }}">Public link</a>
+    {% endif %}
+{% endblock %}
+{% block script %}
+    {{ super() }}
+    {% if user.admin %}
+    <script>
+    function erase() {
+        $.post("/api/user/{{ profile.id }}/erase_bio").done(function () {
+            location.reload();
+        }).fail(function () {
+            alert("Error erasing bio.");
+        })
+    }
+    </script>
     {% endif %}
 {% endblock %}

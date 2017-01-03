@@ -17,10 +17,7 @@ from werkzeug.exceptions import Forbidden
 from uBlog import db, app
 from uBlog.models import User, Page, Post, Beer
 from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, PostEditForm, BeerEditForm
-from uBlog.helpers import make_markdown
-
-
-# todo: authentication!!
+from uBlog.helpers import make_markdown, admin_required
 
 
 @app.errorhandler(HTTPException)
@@ -30,9 +27,9 @@ def any_error(e):
 
 @app.route("/")
 def view_index():
-    page = Page.query.get(0)
+    page = Page.query.get(1)
     if page is None:
-        raise NotFound('No index page!\nThe index page always has page id 0.')
+        raise NotFound('No index page!\nThe index page always has page id 1.')
     return render_template('page.html', page=page)
 
 
@@ -52,6 +49,9 @@ def view_login():
     if form.login.data and form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).limit(1).first()
         if user:
+            if not user.is_active:
+                flash('Your account is not active.', 'danger')
+                return render_template('login.html', form=form)
             if user.password == form.password.data:
                 db.session.add(user)
                 db.session.commit()
@@ -150,47 +150,12 @@ def view_profile_edit():
     return render_template('edit_profile.html', form=form, uniqueid="user-%s" % user.id)
 
 
-@app.route("/profile/<int:id>")
-def view_profile(id):
-    user = User.query.get(id)
+@app.route("/profile/<user_id>")
+def view_profile(user_id):
+    user = User.query.get(user_id)
     if user is None:
-        raise NotFound("User %d not found." % id)
+        raise NotFound("User %d not found." % user_id)
     return render_template('profile.html', profile=user, own_profile=False)
-
-
-@app.route("/edit/page/<int:page_id>", methods=['GET', 'POST'])
-@app.route("/edit/page/", methods=['GET', 'POST'])
-@login_required
-def view_page_edit(page_id=-1):
-    if not current_user.admin:
-        raise Forbidden('You are not allowed to make or edit pages.')
-
-    if page_id == -1:
-        page = Page()
-    else:
-        page = Page.query.get(page_id)
-        if page is None:
-            raise NotFound('Page %s not found.' % page_id)
-
-    form = PageEditForm(obj=page)
-
-    if form.save.data and form.validate_on_submit():
-        form.populate_obj(page)
-        page.content_html = make_markdown(page.content, clazz="md md-page")
-        db.session.add(page)
-        db.session.commit()
-        if page_id == -1:
-            return redirect('/edit/page/%d' % page_id)
-    return render_template('edit_page.html', form=form, title=page.title, uniqueid="page-%d" % page_id)
-
-
-@app.route("/admin")
-@login_required
-def view_admin():
-    if not current_user.admin:
-        raise Forbidden('You are not an admin.')
-
-    return render_template('admin.html', users=User.query.order_by(User.id).all())
 
 
 @app.route("/edit/post/<int:post_id>", methods=['GET', 'POST'])
@@ -236,7 +201,99 @@ def view_post_delete(post_id):
     post = Post.query.get(post_id)
     if post is None:
         raise NotFound('Post %d not found.' % post_id)
-    post.active = False
+    if post.user_id != current_user.id and not current_user.admin:
+        raise Forbidden('This is not your post to delete.')
     db.session.delete(post)
     db.session.commit()
     return redirect('/beer/%d' % post.beer_id)
+
+
+@app.route("/admin")
+@admin_required
+def view_admin():
+    if not current_user.admin:
+        raise Forbidden('You are not an admin.')
+    return render_template('admin.html', users=User.query.order_by(User.id).all())
+
+
+@app.route("/edit/page/<int:page_id>", methods=['GET', 'POST'])
+@app.route("/edit/page/", methods=['GET', 'POST'])
+@admin_required
+def view_page_edit(page_id=None):
+    if not current_user.admin:
+        raise Forbidden('You are not allowed to make or edit pages.')
+
+    if page_id is None:
+        page = Page()
+    else:
+        page = Page.query.get(page_id)
+        if page is None:
+            raise NotFound('Page %s not found.' % page_id)
+
+    form = PageEditForm(obj=page)
+
+    if form.save.data and form.validate_on_submit():
+        form.populate_obj(page)
+        page.content_html = make_markdown(page.content, clazz="md md-page")
+        db.session.add(page)
+        db.session.commit()
+        db.session.refresh(page)
+        if page_id is None:
+            return redirect('/edit/page/%d' % page.id)
+    return render_template('edit_page.html', form=form, title=page.title, uniqueid="page-%s" % page_id)
+
+
+@app.route("/api/user/<int:user_id>/erase_bio", methods=['POST'])
+@admin_required
+def view_api_user_erase_bio(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        raise NotFound("User %d not found." % user_id)
+    user.bio = ''
+    user.bio_html = '<p class="text-danger">Your bio was erased by an admin.</p>'
+    db.session.add(user)
+    db.session.commit()
+    return 'OK'
+
+
+@app.route("/api/user/<int:user_id>/activate", methods=['POST'])
+@admin_required
+def view_api_user_activate(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        raise NotFound("User %d not found." % user_id)
+    user.active = True
+    db.session.add(user)
+    db.session.commit()
+    return 'OK'
+
+
+@app.route("/api/user/<int:user_id>/admin", methods=['POST'])
+@admin_required
+def view_api_user_admin(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        raise NotFound("User %d not found." % user_id)
+    if user.id == 1:
+        raise BadRequest('You cannot un-admin the ÜberAdmin!')
+    if current_user == user:
+        raise BadRequest('You cannot un-admin yourself!')
+    user.admin = not user.admin
+    db.session.add(user)
+    db.session.commit()
+    return 'OK'
+
+
+@app.route("/api/user/<int:user_id>/brewer", methods=['POST'])
+@admin_required
+def view_api_user_brewer(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        raise NotFound("User %d not found." % user_id)
+    user.brewer = not user.brewer
+    db.session.add(user)
+    db.session.commit()
+    return 'OK'
+
+
+

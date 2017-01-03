@@ -13,15 +13,14 @@
         <th>ID</th>
         <th>Name</th>
         <th>Title</th>
-        <th></th>
     </tr></thead>
     <tbody>
         {% for page in pages %}
-        <tr {% if page.id == 0 %}class="table-info" title="Page ID 0 is always the root page."{% endif %}>
+        <tr {% if page.id == 1 %}class="table-info" title="Page ID 0 is always the root page."{% endif %}>
             <td>{{ page.id }}</td>
             <td><a href="/{{ page.name }}">{{ page.name }}</a></td>
             <td>{{ page.title }}</td>
-            <td class="text-xs-right"><a href="/edit/page/{{ page.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>
+{#            <td class="text-xs-right"><a href="/edit/page/{{ page.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>#}
         </tr>
         {% endfor %}
     </tbody>
@@ -38,11 +37,12 @@
     </tr></thead>
     <tbody>
         {% for user in users %}
-        <tr class="{{ 'table-danger' if not user.active else ('table-warning' if user.admin else ('table-success' if user.brewer)) }}">
+        <tr class="{{ 'table-info' if user.id == 1 else ('table-danger' if not user.active else ('table-warning' if user.admin else ('table-success' if user.brewer))) }}"
+            title="{{ 'ÜberAdmin' if user.id == 1 }}">
             <td>{{ user.id }}</td>
             <td><a href="/profile/{{ user.id }}">{{ user.name }}</a></td>
-            <td title="Email{{ ' not' if not user.showEmail }} public">
-                <span class="pull-right"><i class="fa fa-fw fa-eye{{ '-slash' if not user.showEmail }}"></i></span>{{ user.email }}
+            <td title="Email{{ ' not' if not user.show_email }} public">
+                <span class="pull-right"><i class="fa fa-fw fa-eye{{ '-slash' if not user.show_email }}"></i></span>{{ user.email }}
             </td>
             <td title="{{ ['Admin' if user.admin, 'Brewer' if user.brewer, 'Not active' if not user.active]|select('defined')|join(', ') }}">
                 {% if not user.active %}<i class="fa fa-fw fa-exclamation" title="Not active"></i>{% endif %}
@@ -54,7 +54,7 @@
                 <button class="btn btn-sm btn-danger" title="Manually activate" onclick="activate({{ user.id }})"><i class="fa fa-fw fa-exclamation"></i></button>
                 {% else %}
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-danger" title="Toggle Admin" {{ 'disabled' if user == current_user else 'onclick=admin(' + user.id|string + ')' }}><i class="fa fa-fw fa-bolt"></i></button>
+                    <button class="btn btn-danger" title="Toggle Admin" {{ 'disabled' if user == current_user or user.id == 1 else 'onclick=admin(' + user.id|string + ')' }}><i class="fa fa-fw fa-bolt"></i></button>
                     <button class="btn btn-warning" title="Toggle Brewer" onclick="brewer({{ user.id }})"><i class="fa fa-fw fa-beer"></i></button>
                 </div>
                 {% endif %}
@@ -70,7 +70,6 @@
         <th>ID</th>
         <th>Name</th>
         <th>Brewer</th>
-        <th></th>
     </tr></thead>
     <tbody>
         {% for beer in beers|reverse %}
@@ -81,7 +80,7 @@
                 <a href="/beer/{{ beer.id }}">{{ beer.name }}</a>
             </td>
             <td>{{ beer.brewer.name }}</td>
-            <td class="text-xs-right"><a href="/edit/beer/{{ beer.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>
+{#            <td class="text-xs-right"><a href="/edit/beer/{{ beer.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>#}
         </tr>
         {% endfor %}
     </tbody>
@@ -95,20 +94,29 @@
 
     function activate(userid)
     {
-        //todo: implement AJAX
-        console.info('activate ' + userid)
+        $.post("/api/user/" + userid + "/activate").done(function () {
+            location.reload();
+        }).fail(function () {
+            alert("Cannot activate.");
+        });
     }
 
     function admin(userid)
     {
-        //todo: implement AJAX
-        console.info('admin ' + userid)
+        $.post("/api/user/" + userid + "/admin").done(function () {
+            location.reload();
+        }).fail(function () {
+            alert("Cannot toggle admin.");
+        });
     }
 
     function brewer(userid)
     {
-        //todo: implement AJAX
-        console.info('brewer ' + userid)
+        $.post("/api/user/" + userid + "/brewer").done(function () {
+            location.reload();
+        }).fail(function () {
+            alert("Cannot toggle brewer.");
+        });
     }
     </script>
 {% endblock %}

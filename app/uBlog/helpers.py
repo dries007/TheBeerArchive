@@ -1,5 +1,9 @@
+from functools import wraps
+
 from flask import Markup
 from flask import escape
+from flask import request
+from flask_login.config import EXEMPT_METHODS
 from flask_login import current_user
 
 from lxml.html import clean
@@ -12,8 +16,8 @@ from uBlog.models import User, Page, Beer
 
 
 @lm.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 @app.context_processor
@@ -88,3 +92,14 @@ def filter_markdown(text):
 #     if type(item) is str or 'conditions' not in item:
 #         return True
 #     return all(map(_test_menu_condition, item['conditions']))
+
+
+def admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if request.method in EXEMPT_METHODS:
+            return func(*args, **kwargs)
+        elif not (current_user.is_authenticated and current_user.admin):
+            return app.login_manager.unauthorized()
+        return func(*args, **kwargs)
+    return decorated_view
