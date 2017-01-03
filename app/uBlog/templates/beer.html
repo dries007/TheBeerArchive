@@ -9,7 +9,7 @@
     {% endif %}
     <h1><small>Brew: </small>{{ beer.name }}</h1>
     <div>{{ beer.content_html | safe }}</div>
-    <div class="beer-meta text-muted font-italic"><small>By <a class="hide" href="/profile/{{ beer.brewer.id }}">{{ beer.brewer.name }}</a>. Published {{ beer.published | timedelta }}. {% if (beer.last_edit - beer.published).total_seconds() > 10*60 %}Last edit {{ beer.last_edit | timedelta }}{% endif %}</small></div>
+    <div class="beer-meta text-muted font-italic"><small>By <a class="hide" href="/profile/{{ beer.brewer.id }}">{{ beer.brewer.name }}</a>. Published {{ beer.published | timedelta }}. {% if beer.published is older(beer.last_edit, minutes=10) %}Last edit {{ beer.last_edit | timedelta }}{% endif %}</small></div>
     {% for post in beer.posts.order_by('published desc').all() %}
         {% if loop.first %}<hr>{% endif %}
         {% if post.user_id == user.id or user.admin %}
@@ -18,7 +18,7 @@
         <div class="post">
             {{ post.content_html | safe }}
         </div>
-        <div class="post-meta text-muted font-italic"><small>By <a class="hide" href="/profile/{{ post.author.id }}">{{ post.author.name }}</a>. Published {{ post.published | timedelta }}. {% if (post.last_edit - post.published).total_seconds() > 10*60 %}Last edit {{ post.last_edit | timedelta }}{% endif %}</small></div>
+        <div class="post-meta text-muted font-italic"><small>By <a class="hide" href="/profile/{{ post.author.id }}">{{ post.author.name }}</a>. Published {{ post.published | timedelta }}. {% if post.published is older(post.last_edit, minutes=10) %}Last edit {{ post.last_edit | timedelta }}{% endif %}</small></div>
         {% if not loop.last %}<hr>{% endif %}
     {% endfor %}
 {% endblock %}

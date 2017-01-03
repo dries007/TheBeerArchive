@@ -27,9 +27,9 @@
                     <a href="/{{ page.name }}" class="nav-item nav-link">{{ page.title }}</a>
                     {% endfor %}
                     <div class="nav-item dropdown">
-                        <a href="/beers" class="nav-link dropdown-toggle" data-toggle="dropdown">Beers</a>
+                        <a href="/brews" class="nav-link dropdown-toggle" data-toggle="dropdown">Brews</a>
                         <div class="dropdown-menu">
-                            <a href="/beers" class="dropdown-item">The Beer List</a>
+                            <a href="/brews" class="dropdown-item">Overview</a>
                             <div class="dropdown-divider"></div>
                             {% for beer in beers|reverse if beer.listed %}
                             <a href="/beer/{{ beer.id }}" class="dropdown-item">{{ beer.name }}</a>

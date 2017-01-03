@@ -21,7 +21,7 @@
         </div>
         <div class="form-group">
             {{ form.save(class="btn btn-primary") }}
-            {% if not new %}<a class="btn btn-danger" role="button" href="/del/post/{{ post.id }}">Delete Post</a>{% endif %}
+            {% if uniqueid != 'post-None' %}{{ form.delete(class="btn btn-danger", onclick="confirm('Are you shure you want to delete this post?')") }}{% endif %}
         </div>
     </form>
 {% endblock %}

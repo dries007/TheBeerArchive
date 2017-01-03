@@ -48,6 +48,7 @@
         </div>
         <div class="form-group">
             {{ form.save(class="btn btn-primary") }}
+            {% if uniqueid != 'page-None' %}{{ form.delete(class="btn btn-danger", onclick="confirm('Are you shure you want to delete this page?')") }}{% endif %}
         </div>
     </form>
 {% endblock %}

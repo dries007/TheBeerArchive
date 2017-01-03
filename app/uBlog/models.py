@@ -3,6 +3,7 @@ from sqlalchemy_utils import EmailType
 from sqlalchemy_utils import force_auto_coercion
 from sqlalchemy.sql.expression import text
 from wtforms.validators import Regexp
+from datetime import datetime
 
 from uBlog import db
 
@@ -17,15 +18,16 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True, unique=True)
     password = db.Column(PasswordType(schemes=['pbkdf2_sha512']), nullable=False)
+    registered_on = db.Column(db.DateTime, nullable=False, default=datetime.now(), server_default=text('NOW()'))
     email = db.Column(EmailType(), index=True, unique=True)
-    active = db.Column(db.Boolean, default=False)
+    active = db.Column(db.Boolean, default=False, server_default=text('FALSE'))
     bio = db.Column(db.Text, nullable=False, default='', server_default='')
     bio_html = db.Column(db.Text)
     emojis = db.Column(db.Boolean, nullable=False, default=True, server_default=text('TRUE'))
     show_email = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     brewer = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     admin = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
-    json = db.Column(db.JSON, nullable=True)
+    json = db.Column(db.JSON, nullable=False, default=lambda: {})
 
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     beers = db.relationship('Beer', backref='brewer', lazy='dynamic')
@@ -36,7 +38,7 @@ class User(db.Model):
 
     @property
     def is_active(self):
-        return True
+        return self.active
 
     @property
     def is_anonymous(self):

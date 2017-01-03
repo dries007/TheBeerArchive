@@ -6,6 +6,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from apscheduler.schedulers.background import BackgroundScheduler
 
 mimetypes.init()
 
@@ -27,6 +28,8 @@ lm.login_view = '/login'
 
 gravatar = Gravatar(app, size=100, rating='g', default='mm', use_ssl=True)
 
+scheduler = BackgroundScheduler()
+
 # noinspection PyUnresolvedReferences
 from uBlog import helpers, views, models, forms
 
@@ -35,3 +38,7 @@ from werkzeug.exceptions import default_exceptions
 for code, ex in default_exceptions.items():
     app.errorhandler(code)(views.any_error)
 
+
+@app.before_first_request
+def initialize():
+    scheduler.start()

@@ -1,4 +1,7 @@
 import datetime
+import sys
+
+from flask import json
 from flask import render_template
 from flask import redirect
 from flask import request
@@ -8,16 +11,17 @@ from flask_login import current_user
 from flask_login import logout_user
 from flask_login import login_user
 from flask_login import login_required
+from sqlalchemy import and_
 
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import NotFound
 from werkzeug.exceptions import BadRequest
 from werkzeug.exceptions import Forbidden
 
-from uBlog import db, app
+from uBlog import db, app, scheduler
 from uBlog.models import User, Page, Post, Beer
 from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, PostEditForm, BeerEditForm
-from uBlog.helpers import make_markdown, admin_required
+from uBlog.helpers import make_markdown, admin_required, get_random_string
 
 
 @app.errorhandler(HTTPException)
@@ -76,19 +80,46 @@ def view_register():
     if form.register.data and form.validate_on_submit():
         user = User()
         form.populate_obj(user)
+        user.json = {'activate': get_random_string(64)}
         db.session.add(user)
         db.session.commit()
-        login_user(user)
+        db.session.refresh(user)
+        if user.id == 1:
+            user.admin = True
+            user.active = True
+            user.json = {}
+            login_user(user)
+            db.session.add(user)
+            db.session.commit()
+            flash('You are the Überadmin.', 'danger')
+            flash('Please make page #1, which will be the root page.', 'danger')
+            return redirect('/edit/page?next=admin')
         # todo: Actually check email
         flash('You still need to verify your email address before your account will be activated.', 'warning')
-        return redirect(request.args.get('next') or '/profile')
+        # return redirect(request.args.get('next') or '/profile')
     return render_template('register.html', form=form)
 
 
-@app.route("/beers")
-@app.route("/beer")
+@app.route("/register/<int:user_id>/<string:token>")
+def view_register_confirm(user_id, token):
+    user = User.query.get(user_id)
+    if user is None:
+        raise BadRequest('User %d not found.' % user_id)
+    if user.active:
+        raise BadRequest('User %d already active.' % user_id)
+    if user.json['activate'] != token:
+        raise BadRequest('Token wrong.')
+    user.active = True
+    del user.json['activate']
+    db.session.add(user)
+    db.session.commit()
+    flash('Email address confirmed. Your account has been activated.', 'success')
+    return redirect('/login')
+
+
+@app.route("/brews")
 def view_beers():
-    return render_template('beers.html')
+    return render_template('brews.html')
 
 
 @app.route("/beer/<int:beer_id>")
@@ -116,6 +147,13 @@ def view_beer_edit(beer_id=None):
 
     form = BeerEditForm(obj=beer)
 
+    if form.delete.data and form.validate_on_submit():
+        for post in beer.posts:
+            db.session.delete(post)
+        db.session.delete(beer)
+        db.session.commit()
+        return redirect('/beers')
+
     if form.save.data and form.validate_on_submit():
         form.populate_obj(beer)
         if beer.published is None:
@@ -140,14 +178,13 @@ def view_own_profile():
 @app.route("/edit/profile", methods=['GET', 'POST'])
 @login_required
 def view_profile_edit():
-    user = User.query.get(current_user.id)
-    form = ProfileEditForm(obj=user)
+    form = ProfileEditForm(obj=current_user)
     if form.save.data and form.validate_on_submit():
-        form.populate_obj(user)
-        user.bio_html = make_markdown(user.bio, empty='<p class="text-muted">This user has no bio set.</p>', clazz="md md-profile")
-        db.session.add(user)
+        form.populate_obj(current_user)
+        current_user.bio_html = make_markdown(current_user.bio, empty='<p class="text-muted">This user has no bio set.</p>', clazz="md md-profile")
+        db.session.add(current_user)
         db.session.commit()
-    return render_template('edit_profile.html', form=form, uniqueid="user-%s" % user.id)
+    return render_template('edit_profile.html', form=form, uniqueid="user-%s" % current_user.id)
 
 
 @app.route("/profile/<user_id>")
@@ -181,6 +218,12 @@ def view_post_edit(post_id=None):
             raise NotFound('Post %d not found.' % post_id)
 
     form = PostEditForm(obj=post)
+
+    if form.delete.data and form.validate_on_submit():
+        db.session.delete(post)
+        db.session.commit()
+        return redirect('/beer/%d' % beer.id)
+
     if form.save.data and form.validate_on_submit():
         form.populate_obj(post)
         if post.published is None:
@@ -195,24 +238,11 @@ def view_post_edit(post_id=None):
     return render_template('edit_post.html', form=form, new=post_id is None, uniqueid="post-%s" % post_id, post=post, beer=beer)
 
 
-@app.route("/del/post/<int:post_id>", methods=['GET', 'POST'])
-@login_required
-def view_post_delete(post_id):
-    post = Post.query.get(post_id)
-    if post is None:
-        raise NotFound('Post %d not found.' % post_id)
-    if post.user_id != current_user.id and not current_user.admin:
-        raise Forbidden('This is not your post to delete.')
-    db.session.delete(post)
-    db.session.commit()
-    return redirect('/beer/%d' % post.beer_id)
-
-
 @app.route("/admin")
 @admin_required
 def view_admin():
-    if not current_user.admin:
-        raise Forbidden('You are not an admin.')
+    if len(Page.query.filter_by(name='terms').limit(1).all()) != 1:
+        flash('You have no Terms & Conditions page. This page should have the URL "/terms".', 'warning')
     return render_template('admin.html', users=User.query.order_by(User.id).all())
 
 
@@ -220,9 +250,6 @@ def view_admin():
 @app.route("/edit/page/", methods=['GET', 'POST'])
 @admin_required
 def view_page_edit(page_id=None):
-    if not current_user.admin:
-        raise Forbidden('You are not allowed to make or edit pages.')
-
     if page_id is None:
         page = Page()
     else:
@@ -232,6 +259,11 @@ def view_page_edit(page_id=None):
 
     form = PageEditForm(obj=page)
 
+    if form.delete.data and form.validate_on_submit():
+        db.session.delete(page)
+        db.session.commit()
+        return redirect('/admin')
+
     if form.save.data and form.validate_on_submit():
         form.populate_obj(page)
         page.content_html = make_markdown(page.content, clazz="md md-page")
@@ -239,6 +271,8 @@ def view_page_edit(page_id=None):
         db.session.commit()
         db.session.refresh(page)
         if page_id is None:
+            if request.args.get('next'):
+                return redirect(request.args.get('next'))
             return redirect('/edit/page/%d' % page.id)
     return render_template('edit_page.html', form=form, title=page.title, uniqueid="page-%s" % page_id)
 
@@ -296,4 +330,26 @@ def view_api_user_brewer(user_id):
     return 'OK'
 
 
+@app.route("/api/user/nuke_unactivated", methods=['POST'])
+@admin_required
+def view_api_user_nuke_unactivated():
+    to_remove = User.query.filter(and_(User.active.is_(False), datetime.datetime.now() - User.registered_on > datetime.timedelta(days=1))).all()
+    removed = []
+    for user in to_remove:
+        removed.append(dict(id=user.id, name=user.name))
+        db.session.delete(user)
+    db.session.commit()
+    return json.dumps(removed)
 
+
+@scheduler.scheduled_job('interval', id='remove_stale_users', hours=1)
+def task_remove_stale_users():
+    print('Stale user purge', file=sys.stderr)
+    with app.app_context():
+        to_remove = User.query.filter(and_(User.active.is_(False), datetime.datetime.now() - User.registered_on > datetime.timedelta(days=3))).all()
+        removed = []
+        for user in to_remove:
+            removed.append(dict(id=user.id, name=user.name))
+            db.session.delete(user)
+        db.session.commit()
+        print('removed users', removed, file=sys.stderr)

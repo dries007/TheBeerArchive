@@ -50,7 +50,7 @@ Software
 Installation Instructions
 -------------------------
 
-Find installation instructions in [LOG.md](LOG.md).
+Find installation instructions in [HOWTO.md](HOWTO.md).
 
 
 License

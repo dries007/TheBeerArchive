@@ -43,6 +43,7 @@ class LoginForm(ModelForm):
 
 class BeerEditForm(ModelForm):
     save = SubmitField('Save')
+    delete = SubmitField('Delete')
 
     class Meta:
         model = Beer
@@ -51,6 +52,7 @@ class BeerEditForm(ModelForm):
 
 class PageEditForm(ModelForm):
     save = SubmitField('Save')
+    delete = SubmitField('Delete')
 
     class Meta:
         model = Page
@@ -68,6 +70,7 @@ class ProfileEditForm(ModelForm):
 
 class PostEditForm(ModelForm):
     save = SubmitField('Save')
+    delete = SubmitField('Delete')
 
     class Meta:
         model = Post

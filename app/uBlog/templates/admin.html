@@ -26,12 +26,18 @@
     </tbody>
     </table>
 
+    {% if users|rejectattr('active')|selectattr('registered_on', 'older', hours=24)|list|length > 0 %}
+    <div class="pull-right btn-group btn-group-sm">
+        <button class="btn btn-danger" onclick="nuke_unactivated()" title="Remove unactivated accounts older than 24h"><i class="fa fa-fw fa-trash-o"></i></button>
+    </div>
+    {% endif %}
     <h2>Users</h2>
     <table class="table table-hover table-sm">
     <thead><tr>
         <th>ID</th>
         <th>Name</th>
         <th>Email</th>
+        <th>Registered</th>
         <th>Status</th>
         <th></th>
     </tr></thead>
@@ -44,10 +50,11 @@
             <td title="Email{{ ' not' if not user.show_email }} public">
                 <span class="pull-right"><i class="fa fa-fw fa-eye{{ '-slash' if not user.show_email }}"></i></span>{{ user.email }}
             </td>
+            <td>{{ user.registered_on | date }}</td>
             <td title="{{ ['Admin' if user.admin, 'Brewer' if user.brewer, 'Not active' if not user.active]|select('defined')|join(', ') }}">
-                {% if not user.active %}<i class="fa fa-fw fa-exclamation" title="Not active"></i>{% endif %}
-                {% if user.admin %}<i class="fa fa-fw fa-bolt" title="Admin"></i>{% endif %}
-                {% if user.brewer %}<i class="fa fa-fw fa-beer" title="Brewer"></i>{% endif %}
+                {% if not user.active %}<i class="fa fa-fw fa-exclamation"></i>{% endif %}
+                {% if user.admin %}<i class="fa fa-fw fa-bolt"></i>{% endif %}
+                {% if user.brewer %}<i class="fa fa-fw fa-beer"></i>{% endif %}
             </td>
             <td class="text-xs-right">
                 {% if not user.active %}
@@ -113,6 +120,15 @@
     function brewer(userid)
     {
         $.post("/api/user/" + userid + "/brewer").done(function () {
+            location.reload();
+        }).fail(function () {
+            alert("Cannot toggle brewer.");
+        });
+    }
+
+    function nuke_unactivated() {
+        if (!confirm("Are you sure you want to permanently remove all unactivated users older than 24h?")) return;
+        $.post("/api/user/nuke_unactivated").done(function () {
             location.reload();
         }).fail(function () {
             alert("Cannot toggle brewer.");

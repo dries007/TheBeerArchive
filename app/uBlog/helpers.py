@@ -1,10 +1,12 @@
 from functools import wraps
 
+import datetime
 from flask import Markup
 from flask import escape
 from flask import request
 from flask_login.config import EXEMPT_METHODS
 from flask_login import current_user
+from werkzeug.exceptions import Forbidden
 
 from lxml.html import clean
 from mdx_gfm import GithubFlavoredMarkdownExtension
@@ -13,6 +15,15 @@ import humanize
 
 from uBlog import lm, app
 from uBlog.models import User, Page, Beer
+
+import random
+import string
+
+SIMPLE_CHARS = string.ascii_letters + string.digits
+
+
+def get_random_string(length=32):
+    return ''.join(random.choice(SIMPLE_CHARS) for _ in range(length))
 
 
 @lm.user_loader
@@ -38,6 +49,14 @@ def filter_nl2br(text):
 @app.template_filter('timedelta')
 def filter_timedelta(datetime):
     return None if datetime is None else humanize.naturaltime(datetime)
+
+
+@app.template_test('older')
+def test_older(t1, t2=None, **kwargs):
+
+    if t2 is None:
+        t2 = datetime.datetime.now()
+    return t1 < t2 - datetime.timedelta(**kwargs)
 
 
 class SimpleTextReplacePattern(markdown.inlinepatterns.Pattern):
@@ -99,7 +118,9 @@ def admin_required(func):
     def decorated_view(*args, **kwargs):
         if request.method in EXEMPT_METHODS:
             return func(*args, **kwargs)
-        elif not (current_user.is_authenticated and current_user.admin):
+        elif not current_user.is_authenticated:
             return app.login_manager.unauthorized()
+        elif not current_user.admin:
+            raise Forbidden()
         return func(*args, **kwargs)
     return decorated_view
