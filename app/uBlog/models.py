@@ -1,9 +1,12 @@
+from sqlalchemy.dialects.postgresql import HSTORE
 from sqlalchemy_utils import PasswordType
 from sqlalchemy_utils import EmailType
 from sqlalchemy_utils import force_auto_coercion
 from sqlalchemy.sql.expression import text
 from wtforms.validators import Regexp
 from datetime import datetime
+
+from sqlalchemy.ext.mutable import MutableDict
 
 from uBlog import db
 
@@ -21,24 +24,25 @@ class User(db.Model):
     registered_on = db.Column(db.DateTime, nullable=False, default=datetime.now(), server_default=text('NOW()'))
     email = db.Column(EmailType(), index=True, unique=True)
     active = db.Column(db.Boolean, default=False, server_default=text('FALSE'))
+    banned = db.Column(db.Boolean, default=False, server_default=text('FALSE'))
     bio = db.Column(db.Text, nullable=False, default='', server_default='')
     bio_html = db.Column(db.Text)
     emojis = db.Column(db.Boolean, nullable=False, default=True, server_default=text('TRUE'))
     show_email = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     brewer = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     admin = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
-    json = db.Column(db.JSON, nullable=False, default=lambda: {})
+    json = db.Column(MutableDict.as_mutable(db.JSON), nullable=False, default=lambda: {})
 
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     beers = db.relationship('Beer', backref='brewer', lazy='dynamic')
 
     @property
     def is_authenticated(self):
-        return True
+        return True and not self.banned
 
     @property
     def is_active(self):
-        return self.active
+        return self.active and not self.banned
 
     @property
     def is_anonymous(self):

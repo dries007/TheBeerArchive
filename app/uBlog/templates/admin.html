@@ -43,7 +43,7 @@
     </tr></thead>
     <tbody>
         {% for user in users %}
-        <tr class="{{ 'table-info' if user.id == 1 else ('table-danger' if not user.active else ('table-warning' if user.admin else ('table-success' if user.brewer))) }}"
+        <tr class="table-{{ ['info' if user.id == 1, 'danger' if not user.active or user.banned, 'warning' if user.admin, 'success' if user.brewer]|select('defined')|first}}"
             title="{{ 'ÜberAdmin' if user.id == 1 }}">
             <td>{{ user.id }}</td>
             <td><a href="/profile/{{ user.id }}">{{ user.name }}</a></td>
@@ -51,18 +51,24 @@
                 <span class="pull-right"><i class="fa fa-fw fa-eye{{ '-slash' if not user.show_email }}"></i></span>{{ user.email }}
             </td>
             <td>{{ user.registered_on | date }}</td>
-            <td title="{{ ['Admin' if user.admin, 'Brewer' if user.brewer, 'Not active' if not user.active]|select('defined')|join(', ') }}">
+            <td title="{{ ['Banned' if user.banned, 'Admin' if user.admin, 'Brewer' if user.brewer, 'Not active' if not user.active]|select('defined')|join(', ') }}">
+                {% if user.banned %}<i class="fa fa-fw fa-ban"></i>{% endif %}
                 {% if not user.active %}<i class="fa fa-fw fa-exclamation"></i>{% endif %}
                 {% if user.admin %}<i class="fa fa-fw fa-bolt"></i>{% endif %}
                 {% if user.brewer %}<i class="fa fa-fw fa-beer"></i>{% endif %}
             </td>
             <td class="text-xs-right">
-                {% if not user.active %}
+                {% if user.banned %}
+                <button class="btn btn-sm btn-danger" title="Unban" onclick="unban({{ user.id }})"><i class="fa fa-fw fa-ban"></i></button>
+                {% elif not user.active %}
                 <button class="btn btn-sm btn-danger" title="Manually activate" onclick="activate({{ user.id }})"><i class="fa fa-fw fa-exclamation"></i></button>
                 {% else %}
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-danger" title="Toggle Admin" {{ 'disabled' if user == current_user or user.id == 1 else 'onclick=admin(' + user.id|string + ')' }}><i class="fa fa-fw fa-bolt"></i></button>
                     <button class="btn btn-warning" title="Toggle Brewer" onclick="brewer({{ user.id }})"><i class="fa fa-fw fa-beer"></i></button>
+                    {% if not user.admin %}
+                    <button class="btn btn-sm btn-danger" title="Ban" onclick="ban({{ user.id }})"><i class="fa fa-fw fa-ban"></i></button>
+                    {% endif %}
                 </div>
                 {% endif %}
             </td>
@@ -123,6 +129,28 @@
             location.reload();
         }).fail(function () {
             alert("Cannot toggle brewer.");
+        });
+    }
+
+    function ban(userid)
+    {
+        var reason = prompt('Reason?');
+        if (reason !== false)
+        {
+            $.post("/api/user/" + userid + "/ban", {reason: reason}).done(function () {
+                location.reload();
+            }).fail(function () {
+                alert("Cannot ban.");
+            });
+        }
+    }
+
+    function unban(userid)
+    {
+        $.post("/api/user/" + userid + "/unban").done(function () {
+            location.reload();
+        }).fail(function () {
+            alert("Cannot unban.");
         });
     }
 

@@ -50,7 +50,10 @@ img.emoji {
     src: url("deutschezierschrift.ttf");
     src: local("Deutsche Zierschrift");
 }
-.logo-font
-{
+.logo-font {
     font-family: "Deutsche Zierschrift";
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
 }

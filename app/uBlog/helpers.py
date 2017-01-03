@@ -113,6 +113,17 @@ def filter_markdown(text):
 #     return all(map(_test_menu_condition, item['conditions']))
 
 
+def login_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if request.method in EXEMPT_METHODS:
+            return func(*args, **kwargs)
+        elif not current_user.is_authenticated or not current_user.is_active:
+            return app.login_manager.unauthorized()
+        return func(*args, **kwargs)
+    return decorated_view
+
+
 def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):

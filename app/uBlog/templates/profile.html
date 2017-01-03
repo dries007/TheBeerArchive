@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block title %}{{ profile.name }}'s profile{% endblock %}
 {% block content %}
-    <div class="pull-right">
+    <div class="pull-right btn-group btn-group-sm">
         {% if own_profile %}
         <a class="btn btn-sm btn-outline-secondary" role="button" href="/edit/profile"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
         {% elif user.admin %}
-        <button class="btn btn-sm btn-outline-warning" onclick="erase()"><i class="fa fa-eraser" aria-hidden="true"></i> Erase Bio</button>
+            {% if profile.banned %}
+            <button class="btn btn-outline-warning" onclick="unban()"><i class="fa fa-ban" aria-hidden="true"></i> Unban</button>
+            {% else %}
+            <button class="btn btn-outline-warning" onclick="ban()"><i class="fa fa-ban" aria-hidden="true"></i> Ban</button>
+            <button class="btn btn-outline-warning" onclick="erase()"><i class="fa fa-eraser" aria-hidden="true"></i> Erase Bio</button>
+            {% endif %}
         {% endif %}
     </div>
     <dl class="row">
@@ -13,7 +18,7 @@
         <dt class="col-sm-3">User id</dt>   <dd class="col-sm-9">{{ profile.id }}</dd>
         <dt class="col-sm-3">Name</dt>      <dd class="col-sm-9">{{ profile.name }}</dd>
         <dt class="col-sm-3">Registered</dt><dd class="col-sm-9">{{ profile.registered_on | date }}</dd>
-        {% if own_profile or user.show_email %}
+        {% if own_profile or (user.show_email and not profile.banned) %}
         <dt class="col-sm-3">Email</dt>     <dd class="col-sm-9">{{ profile.email }}</dd>
         {% endif %}
         {% if own_profile %}
@@ -22,7 +27,11 @@
         {% endif %}
         <dt class="col-sm-3">Brewer</dt>    <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.brewer else 'times' }}"></i></dd>
         <dt class="col-sm-3">Admin</dt>     <dd class="col-sm-9"><i class="fa fa-fw fa-{{ 'check' if profile.admin else 'times' }}"></i></dd>
+        {% if profile.banned %}
+        <dt class="col-sm-3">Banned</dt>    <dd class="col-sm-9">{{ profile.json['ban_reason'] or 'No reason specified' }}</dd>
+        {% else %}
         <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
+        {% endif %}
     </dl>
     {% if request.path == "/profile" %}
     <a href="/profile/{{ profile.id }}">Public link</a>
@@ -32,12 +41,35 @@
     {{ super() }}
     {% if user.admin %}
     <script>
-    function erase() {
+    function erase()
+    {
         $.post("/api/user/{{ profile.id }}/erase_bio").done(function () {
             location.reload();
         }).fail(function () {
             alert("Error erasing bio.");
         })
+    }
+
+    function ban()
+    {
+        var reason = prompt('Reason?');
+        if (reason !== false)
+        {
+            $.post("/api/user/{{ profile.id }}/ban", {reason: reason}).done(function () {
+                location.reload();
+            }).fail(function () {
+                alert("Cannot ban.");
+            });
+        }
+    }
+
+    function unban()
+    {
+        $.post("/api/user/{{ profile.id }}/unban").done(function () {
+            location.reload();
+        }).fail(function () {
+            alert("Cannot unban.");
+        });
     }
     </script>
     {% endif %}

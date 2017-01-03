@@ -10,7 +10,7 @@ from flask import flash
 from flask_login import current_user
 from flask_login import logout_user
 from flask_login import login_user
-from flask_login import login_required
+# from flask_login import login_required
 from sqlalchemy import and_
 
 from werkzeug.exceptions import HTTPException
@@ -21,12 +21,18 @@ from werkzeug.exceptions import Forbidden
 from uBlog import db, app, scheduler
 from uBlog.models import User, Page, Post, Beer
 from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, PostEditForm, BeerEditForm
-from uBlog.helpers import make_markdown, admin_required, get_random_string
+from uBlog.helpers import make_markdown, admin_required, get_random_string, login_required
 
 
 @app.errorhandler(HTTPException)
 def any_error(e):
     return render_template('error.html', e=e), e.code
+
+
+@app.before_request
+def before_any_request():
+    if not current_user.is_anonymous and current_user.banned:
+        logout_user()
 
 
 @app.route("/")
@@ -53,6 +59,9 @@ def view_login():
     if form.login.data and form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).limit(1).first()
         if user:
+            if user.banned:
+                flash('Your account is banned for:\n' + (user.json['ban_reason'] if 'ban_reason' in user.json else '-No reason given.-'), 'danger')
+                return render_template('login.html', form=form)
             if not user.is_active:
                 flash('Your account is not active.', 'danger')
                 return render_template('login.html', form=form)
@@ -184,6 +193,7 @@ def view_profile_edit():
         current_user.bio_html = make_markdown(current_user.bio, empty='<p class="text-muted">This user has no bio set.</p>', clazz="md md-profile")
         db.session.add(current_user)
         db.session.commit()
+        return redirect('/profile')
     return render_template('edit_profile.html', form=form, uniqueid="user-%s" % current_user.id)
 
 
@@ -192,6 +202,8 @@ def view_profile(user_id):
     user = User.query.get(user_id)
     if user is None:
         raise NotFound("User %d not found." % user_id)
+    if user.banned:
+        flash('This user is banned.', 'warning')
     return render_template('profile.html', profile=user, own_profile=False)
 
 
@@ -297,6 +309,7 @@ def view_api_user_activate(user_id):
     if user is None:
         raise NotFound("User %d not found." % user_id)
     user.active = True
+    del user.json['activate']
     db.session.add(user)
     db.session.commit()
     return 'OK'
@@ -305,11 +318,11 @@ def view_api_user_activate(user_id):
 @app.route("/api/user/<int:user_id>/admin", methods=['POST'])
 @admin_required
 def view_api_user_admin(user_id):
+    if user_id == 1:
+        raise NotFound("The Überadmin is unbannable.")
     user = User.query.get(user_id)
     if user is None:
         raise NotFound("User %d not found." % user_id)
-    if user.id == 1:
-        raise BadRequest('You cannot un-admin the ÜberAdmin!')
     if current_user == user:
         raise BadRequest('You cannot un-admin yourself!')
     user.admin = not user.admin
@@ -325,6 +338,36 @@ def view_api_user_brewer(user_id):
     if user is None:
         raise NotFound("User %d not found." % user_id)
     user.brewer = not user.brewer
+    db.session.add(user)
+    db.session.commit()
+    return 'OK'
+
+
+@app.route("/api/user/<int:user_id>/ban", methods=['POST'])
+@admin_required
+def view_api_user_ban(user_id):
+    if user_id == 1:
+        raise NotFound("The Überadmin is unbannable.")
+    user = User.query.get(user_id)
+    if user is None:
+        raise NotFound("User %d not found." % user_id)
+    user.banned = True
+    user.brewer = False
+    user.json['ban_reason'] = request.form.get('reason')
+    db.session.add(user)
+    db.session.commit()
+    return 'OK'
+
+
+@app.route("/api/user/<int:user_id>/unban", methods=['POST'])
+@admin_required
+def view_api_user_unban(user_id):
+    user = User.query.get(user_id)
+    if user is None:
+        raise NotFound("User %d not found." % user_id)
+    user.banned = False
+    if 'ban_reason' in user.json:
+        del user.json['ban_reason']
     db.session.add(user)
     db.session.commit()
     return 'OK'

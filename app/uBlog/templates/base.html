@@ -41,7 +41,7 @@
                     {% for page in pages if page.menu_right %}
                     <a href="/{{ page.name }}" class="nav-item nav-link">{{ page.title }}</a>
                     {% endfor %}
-                    {% if user.is_anonymous %}
+                    {% if not user.is_active %}
                     <a href="/login" class="nav-item nav-link">Login</a>
                     {% else %}
                         {% if user.brewer %}
