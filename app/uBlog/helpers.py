@@ -1,23 +1,19 @@
+import datetime
+import random
+import string
 from functools import wraps
 
-import datetime
-from flask import Markup
-from flask import escape
-from flask import request
-from flask_login.config import EXEMPT_METHODS
+import humanize
+import markdown
+from flask import Markup, escape, request
 from flask_login import current_user
-from werkzeug.exceptions import Forbidden
-
+from flask_login.config import EXEMPT_METHODS
 from lxml.html import clean
 from mdx_gfm import GithubFlavoredMarkdownExtension
-import markdown
-import humanize
+from werkzeug.exceptions import Forbidden
 
 from uBlog import lm, app
 from uBlog.models import User, Page, Beer
-
-import random
-import string
 
 SIMPLE_CHARS = string.ascii_letters + string.digits
 

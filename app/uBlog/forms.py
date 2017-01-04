@@ -31,6 +31,16 @@ class RegisterForm(ModelForm):
         only = ['name', 'email', 'password']
 
 
+class PasswordResetRequestForm(ModelForm):
+    email = EmailField('email', validators=[InputRequired(), Email()])
+    request = SubmitField('Request reset link')
+
+
+class PasswordResetForm(ModelForm):
+    password = PasswordField('password', validators=[InputRequired(), Length(min=6)])
+    confirm = SubmitField('Confirm')
+
+
 class LoginForm(ModelForm):
     email = EmailField('email', validators=[InputRequired(), Email()])
     password = PasswordField('password', validators=[InputRequired(), Length(min=6)])

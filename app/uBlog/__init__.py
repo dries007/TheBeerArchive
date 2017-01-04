@@ -1,12 +1,13 @@
 import mimetypes
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 from flask_gravatar import Gravatar
+from flask_login import LoginManager
+from flask_mail import Mail
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
-from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
-from apscheduler.schedulers.background import BackgroundScheduler
 
 mimetypes.init()
 
@@ -30,8 +31,10 @@ gravatar = Gravatar(app, size=100, rating='g', default='mm', use_ssl=True)
 
 scheduler = BackgroundScheduler()
 
+mail = Mail(app)
+
 # noinspection PyUnresolvedReferences
-from uBlog import helpers, views, models, forms
+from uBlog import helpers, views, models, forms, tasks
 
 # fixme: It's impossible to catch HTTPException. Flask Bug #941 (https://github.com/pallets/flask/issues/941)
 from werkzeug.exceptions import default_exceptions

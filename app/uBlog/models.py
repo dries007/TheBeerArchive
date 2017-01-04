@@ -1,14 +1,13 @@
-from sqlalchemy.dialects.postgresql import HSTORE
-from sqlalchemy_utils import PasswordType
-from sqlalchemy_utils import EmailType
-from sqlalchemy_utils import force_auto_coercion
-from sqlalchemy.sql.expression import text
-from wtforms.validators import Regexp
 from datetime import datetime
 
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.sql.expression import text
+from sqlalchemy_utils import PasswordType, EmailType, force_auto_coercion
+from wtforms.validators import Regexp
 
 from uBlog import db
+
 
 force_auto_coercion()
 
@@ -31,7 +30,7 @@ class User(db.Model):
     show_email = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     brewer = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     admin = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
-    json = db.Column(MutableDict.as_mutable(db.JSON), nullable=False, default=lambda: {})
+    json = db.Column(MutableDict.as_mutable(JSONB), nullable=False, default=lambda: {})
 
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     beers = db.relationship('Beer', backref='brewer', lazy='dynamic')

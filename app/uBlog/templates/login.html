@@ -22,10 +22,12 @@
                 {% endif %}
             </div>
         </div>
+        {# todo: fail2ban? #}
         <div class="form-group row{{ ' has-danger' if form.login.errors }}">
             <div class="offset-sm-2 col-sm-10">
                 {{ form.login(class='btn btn-primary') }}
                 <a href="/register" class="btn btn-secondary">Sign up here</a>
+                <a href="/login/reset" class="btn btn-outline-danger">Password reset</a>
             </div>
         </div>
     </form>

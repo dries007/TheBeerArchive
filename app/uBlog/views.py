@@ -1,27 +1,15 @@
 import datetime
-import sys
 
-from flask import json
-from flask import render_template
-from flask import redirect
-from flask import request
-from flask import flash
-
-from flask_login import current_user
-from flask_login import logout_user
-from flask_login import login_user
-# from flask_login import login_required
+from flask import json, render_template, redirect, render_template_string, request, flash
+from flask_login import current_user, logout_user, login_user
+from flask_mail import Message
 from sqlalchemy import and_
+from werkzeug.exceptions import HTTPException, NotFound, BadRequest, Forbidden
 
-from werkzeug.exceptions import HTTPException
-from werkzeug.exceptions import NotFound
-from werkzeug.exceptions import BadRequest
-from werkzeug.exceptions import Forbidden
-
-from uBlog import db, app, scheduler
-from uBlog.models import User, Page, Post, Beer
-from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, PostEditForm, BeerEditForm
+from uBlog import db, app, mail
+from uBlog.forms import LoginForm, RegisterForm, PageEditForm, ProfileEditForm, PostEditForm, BeerEditForm, PasswordResetRequestForm, PasswordResetForm
 from uBlog.helpers import make_markdown, admin_required, get_random_string, login_required
+from uBlog.models import User, Page, Post, Beer
 
 
 @app.errorhandler(HTTPException)
@@ -54,6 +42,7 @@ def view_any_page(name):
 @app.route("/login", methods=['GET', 'POST'])
 def view_login():
     if current_user.is_authenticated:
+        flash('You are already logged in', 'danger')
         return redirect(request.args.get('next') or '/profile')
     form = LoginForm()
     if form.login.data and form.validate_on_submit():
@@ -73,6 +62,70 @@ def view_login():
                 return redirect(request.args.get('next') or '/profile')
         flash('Login details incorrect.', 'danger')
     return render_template('login.html', form=form)
+
+
+@app.route("/login/reset", methods=['GET', 'POST'])
+def view_login_reset():
+    if current_user.is_authenticated:
+        flash('You are already logged in', 'danger')
+        return redirect(request.args.get('next') or '/profile')
+    form = PasswordResetRequestForm()
+    if form.request.data and form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).limit(1).first()
+        if user:
+            if user.banned:
+                flash('Your account is banned for:\n' + (user.json['ban_reason'] if 'ban_reason' in user.json else '-No reason given.-'), 'danger')
+                return redirect('/login')
+            if not user.is_active:
+                flash('Your account is not active.', 'danger')
+                return redirect('/login')
+            if 'reset_token' in user.json:
+                flash('You already requested a reset link. Be patient and check your spam folder please.', 'warning')
+                return redirect('/login')
+            user.json['reset_token'] = get_random_string(64)
+            user.json['reset_token_expire'] = int((datetime.datetime.now() + datetime.timedelta(days=1)).timestamp())
+            db.session.add(user)
+            db.session.commit()
+            try:
+                msg = Message('Password reset request', recipients=[user.email])
+                msg.body = render_template_string(app.config['MAIL_TEMPLATE_RESET'], user=user, token=user.json['reset_token'])
+                msg.html = make_markdown(msg.body)
+                mail.send(msg)
+                flash('Password reset email has been send.', 'info')
+            except:
+                flash('Password reset email count NOT be send. Please contact an administrator as soon as possible.', 'danger')
+                del user.json['reset_token']
+                del user.json['reset_token_expire']
+                db.session.add(user)
+                db.session.commit()
+            return redirect('/login')
+        flash('That email is not in our database.', 'danger')
+    return render_template('login_reset.html', form=form)
+
+
+@app.route("/login/reset/<int:user_id>/<string:token>", methods=['GET', 'POST'])
+def view_login_reset_token(user_id, token):
+    if current_user.is_authenticated:
+        flash('You are already logged in', 'danger')
+        return redirect(request.args.get('next') or '/profile')
+    user = User.query.get(user_id)
+    if not user:
+        raise BadRequest('User %d not found.' % user_id)
+    if 'reset_token' not in user.json:
+        flash('No token was requested, it has been used already, or it expired.', 'waring')
+        return redirect('/login/reset')
+    if user.json['reset_token'] != token:
+        raise BadRequest('Token invalid.')
+    form = PasswordResetForm()
+    if form.confirm.data and form.validate_on_submit():
+        user.password = form.password.data
+        del user.json['reset_token']
+        del user.json['reset_token_expire']
+        db.session.add(user)
+        db.session.commit()
+        flash('Password has been reset.', 'success')
+        return redirect('/login')
+    return render_template('login_reset_confirm.html', form=form)
 
 
 @app.route("/logout")
@@ -103,9 +156,16 @@ def view_register():
             flash('You are the Überadmin.', 'danger')
             flash('Please make page #1, which will be the root page.', 'danger')
             return redirect('/edit/page?next=admin')
-        # todo: Actually check email
-        flash('You still need to verify your email address before your account will be activated.', 'warning')
-        # return redirect(request.args.get('next') or '/profile')
+        try:
+            msg = Message('Account activation', recipients=[user.email])
+            msg.body = render_template_string(app.config['MAIL_TEMPLATE_ACTIVATION'], user=user, token=user.json['activate'])
+            msg.html = make_markdown(msg.body)
+            mail.send(msg)
+            flash('You still need to verify your email address before your account will be activated.', 'warning')
+        except:
+            flash('Activation email count NOT be send. Please contact an administrator as soon as possible.', 'danger')
+            db.session.delete(user)
+            db.session.commit()
     return render_template('register.html', form=form)
 
 
@@ -117,7 +177,7 @@ def view_register_confirm(user_id, token):
     if user.active:
         raise BadRequest('User %d already active.' % user_id)
     if user.json['activate'] != token:
-        raise BadRequest('Token wrong.')
+        raise BadRequest('Token invalid.')
     user.active = True
     del user.json['activate']
     db.session.add(user)
@@ -384,15 +444,3 @@ def view_api_user_nuke_unactivated():
     db.session.commit()
     return json.dumps(removed)
 
-
-@scheduler.scheduled_job('interval', id='remove_stale_users', hours=1)
-def task_remove_stale_users():
-    print('Stale user purge', file=sys.stderr)
-    with app.app_context():
-        to_remove = User.query.filter(and_(User.active.is_(False), datetime.datetime.now() - User.registered_on > datetime.timedelta(days=3))).all()
-        removed = []
-        for user in to_remove:
-            removed.append(dict(id=user.id, name=user.name))
-            db.session.delete(user)
-        db.session.commit()
-        print('removed users', removed, file=sys.stderr)

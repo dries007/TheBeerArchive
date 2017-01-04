@@ -1,8 +1,9 @@
 ToDo
 ====
 
-- User comments
-- Email verification
+- User comments ?
+- Uploads ?
+
 
 Documentation
 -------------
