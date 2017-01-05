@@ -12,8 +12,8 @@
     <tbody>
         {% for beer in beers|reverse if beer.listed %}
         <tr>
-            <td><a class="hide" href="/beer/{{ beer.id }}">{{ beer.name }}</a></td>
-            <td>{{ beer.brewer.name }}</td>
+            <td><a href="/beer/{{ beer.id }}">{{ beer.name }}</a></td>
+            <td><a href="/profile/{{ beer.brewer.id }}">{{ beer.brewer.name }}</a></td>
             <td>{{ beer.published|date }}</td>
             <td>{{ beer.last_update()|timedelta }}</td>
         </tr>

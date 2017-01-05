@@ -32,6 +32,22 @@
         {% else %}
         <dt class="col-sm-3">Bio</dt>       <dd class="col-sm-9">{{ profile.bio_html | safe }}</dd>
         {% endif %}
+        {% if profile.brewer %}
+        <dt class="col-sm-3">Brews</dt>
+        <dd class="col-sm-9"><ul>
+            {% for brew in profile.beers if brew.listed %}
+            <li><a href="/beer/{{ brew.id }}">{{ brew.name }}</a></li>
+            {% endfor %}
+        </ul></dd>
+        {% if user.brewer %}
+        {% endif %}
+        <dt class="col-sm-3">Unlisted Brews</dt>
+        <dd class="col-sm-9"><ul>
+            {% for brew in profile.beers if not brew.listed %}
+            <li><a href="/beer/{{ brew.id }}">{{ brew.name }}</a></li>
+            {% endfor %}
+        </ul></dd>
+        {% endif %}
     </dl>
     {% if request.path == "/profile" %}
     <a href="/profile/{{ profile.id }}">Public link</a>
