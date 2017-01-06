@@ -6,6 +6,8 @@
 # Do make sure this runs in an actual BASH shell!
 # I recommend adding "RUN rm /bin/sh && ln -s /bin/bash /bin/sh" in your Dockerfile.
 #
+# You also MUST rebuild the image, because the script is copied not mounted.
+#
 # Makes temp cert if required, to keep nginx for crashing if there is no cert present.
 # It keeps the VM alive, so no need for cron stuff.
 # It also nudges the Nginx to update its config, which is why it needs access to the docker executable and socket.
