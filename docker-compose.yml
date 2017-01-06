@@ -10,7 +10,7 @@ services:
             - ./settings.env
             - ./passwords.env
         ports:
-            - "5432:5432" # todo: remove
+            - "5432:5432" # Fixme: Remove if you don't want DB access from the outside world.
 
     # Nginx static web & proxy server
     nginx:
@@ -24,19 +24,25 @@ services:
         volumes:
             - "./conf/nginx:/etc/nginx/conf.d:ro"
         ports:
-            - "8000:80"
-            - "8043:443"
+            - "80:80"     # Fixme: These ports may need to be changed.
+            - "443:443"   # Fixme: These ports may need to be changed.
+        labels:
+          - "certbot_nginx_hup" # Fixme: Must be unique, globally. Gets used by certbot to reload the config.
 
+    # LetsEncrypt
     certbot:
         build: ./certbot
         volumes:
             - "./run/le:/etc/letsencrypt"
-            # - "ssl_volume:/etc/letsencrypt"
             - "./run/log:/var/log"
-        command: "certonly -n -t --email admin@dries007.net --agree-tos --webroot -w /etc/letsencrypt -d bier.dries007.net -d beer.dries007.net"
+            - "/var/run/docker.sock:/var/run/docker.sock:ro" # Fixme: Make sure this is the right location
+            - "/usr/bin/docker:/usr/bin/docker:ro"           # Fixme: Make sure this is the right location
+        env_file:
+            - ./settings.env
+        command: "/root/certbot_script.sh"
 
     # The python app. Runs flask
-    # todo: move to uwsgi
+    # todo: move to uwsgi in deployment
     app:
         build: ./app
         restart: always
@@ -49,10 +55,8 @@ services:
             - ./settings.env
             - ./passwords.env
         ports:
-            - "5000:5000" # todo: remove
+            - "5000:5000"
         command: "python -m uBlog runserver --host=0.0.0.0"
-#        command: "sleep 1000"
 
 volumes:
     db_volume:
-    ssl_volume:

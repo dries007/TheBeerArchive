@@ -221,7 +221,7 @@ def view_beer_edit(beer_id=None):
             db.session.delete(post)
         db.session.delete(beer)
         db.session.commit()
-        return redirect('/beers')
+        return redirect('/brews')
 
     if form.save.data and form.validate_on_submit():
         form.populate_obj(beer)
