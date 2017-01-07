@@ -4,7 +4,7 @@
     <div class="pull-right btn-group btn-group-sm">
         {% if own_profile %}
         <a class="btn btn-sm btn-outline-secondary" role="button" href="/edit/profile"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
-        {% elif user.admin %}
+        {% elif current_user.admin %}
             {% if profile.banned %}
             <button class="btn btn-outline-warning" onclick="unban()"><i class="fa fa-ban" aria-hidden="true"></i> Unban</button>
             {% else %}
@@ -18,7 +18,7 @@
         <dt class="col-sm-3">User id</dt>   <dd class="col-sm-9">{{ profile.id }}</dd>
         <dt class="col-sm-3">Name</dt>      <dd class="col-sm-9">{{ profile.name }}</dd>
         <dt class="col-sm-3">Registered</dt><dd class="col-sm-9">{{ profile.registered_on | date }}</dd>
-        {% if own_profile or (user.show_email and not profile.banned) %}
+        {% if own_profile or (current_user.show_email and not profile.banned) %}
         <dt class="col-sm-3">Email</dt>     <dd class="col-sm-9">{{ profile.email }}</dd>
         {% endif %}
         {% if own_profile %}
@@ -39,7 +39,7 @@
             <li><a href="/beer/{{ brew.id }}">{{ brew.name }}</a></li>
             {% endfor %}
         </ul></dd>
-        {% if user.brewer %}
+        {% if current_user.brewer %}
         {% endif %}
         <dt class="col-sm-3">Unlisted Brews</dt>
         <dd class="col-sm-9"><ul>
@@ -55,7 +55,7 @@
 {% endblock %}
 {% block script %}
     {{ super() }}
-    {% if user.admin %}
+    {% if current_user.admin %}
     <script>
     function erase()
     {

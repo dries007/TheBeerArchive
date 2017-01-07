@@ -1,34 +1,3 @@
-{#========== Menu item #}
-{#{% macro menuitem(item, class, dropdown=False) %}#}
-{#{% if item.disabled %}#}
-{#<div class="{{ class }} disabled">{{ item.text }}</div>#}
-{#{% else %}#}
-{#<a class="{{ class }}" href="{{ item.url | replace("<url>", request.path) }}" {% if dropdown %}data-toggle="dropdown"{% endif %}>{{ item.text }}</a>#}
-{#{% endif %}#}
-{#{% endmacro %}#}
-{#========== Menu #}
-{#{% macro menu(items, class) %}#}
-{#<nav class="nav navbar-nav {{ class }}">#}
-{#    {% for item in items if item is menu_conditions %}#}
-{#    {% if item.subs %}#}
-{#    <div class="nav-item dropdown">#}
-{#        {{ menuitem(item, "nav-link dropdown-toggle", True) }}#}
-{#        <div class="dropdown-menu">#}
-{#            {% for subitem in item.subs if subitem is menu_conditions %}#}
-{#                {% if subitem == "|" %}#}
-{#                <div class="dropdown-divider"></div>#}
-{#                {% else %}#}
-{#                {{ menuitem(subitem, "dropdown-item") }}#}
-{#                {% endif %}#}
-{#            {% endfor %}#}
-{#        </div>#}
-{#    </div>#}
-{#    {% else %}#}
-{#    {{ menuitem(item, "nav-item nav-link") }}#}
-{#    {% endif %}#}
-{#    {% endfor %}#}
-{#</nav>#}
-{#{% endmacro %}#}
 {#========== Simple Markdown Editor #}
 {% macro simpleMDE(elementid, uniqueid) %}
  <script>

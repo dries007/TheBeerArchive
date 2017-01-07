@@ -56,6 +56,8 @@ Find installation instructions in [HOWTO.md](HOWTO.md).
 License
 -------
 
-Copyright &copy; 201 - Dries007
-License: [MIT](LICENSE.md)
+Copyright &copy; 2016 - 2017 Dries007
+License: See [LICENSE.md](LICENSE.md)
+
+(You are not allowed to remove the HTML "generator" meta tag.)
 

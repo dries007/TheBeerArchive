@@ -9,6 +9,7 @@ from flask import Markup, escape, request
 from flask_login import current_user
 from flask_login.config import EXEMPT_METHODS
 from lxml.html import clean
+from markdown.extensions.toc import TocExtension
 from mdx_gfm import GithubFlavoredMarkdownExtension
 from werkzeug.exceptions import Forbidden
 
@@ -29,7 +30,7 @@ def load_user(user_id):
 
 @app.context_processor
 def context_processor():
-    return dict(user=current_user, pages=Page.query.order_by(Page.id).all(), beers=Beer.query.order_by(Beer.id).all())
+    return dict(pages=Page.query.order_by(Page.id).all(), beers=Beer.query.order_by(Beer.id).all())
 
 
 @app.template_filter('date')
@@ -76,7 +77,7 @@ class HTMLEntitiesExtension(markdown.Extension):
 def make_markdown(text, empty='<div class="md"></div>', clazz='md'):
     if text is None or text == '':
         return empty
-    md = markdown.markdown(text, extensions=[GithubFlavoredMarkdownExtension(), HTMLEntitiesExtension()])
+    md = markdown.markdown(text, extensions=[TocExtension(), GithubFlavoredMarkdownExtension(), HTMLEntitiesExtension()])
     cleaner = clean.Cleaner(links=False, add_nofollow=True)
     return '<div class="%s">%s</div>' % (clazz, cleaner.clean_html(md))
 
@@ -84,29 +85,6 @@ def make_markdown(text, empty='<div class="md"></div>', clazz='md'):
 @app.template_filter('markdown')
 def filter_markdown(text):
     return Markup(make_markdown(text))
-
-# Nice idea in theory, too much work though
-# def _test_menu_condition(condition):
-#     if condition['name'] == 'isurl':
-#         return condition.get('inverted', False) != (condition['data'] == request.path)
-#     elif condition['name'] == 'inurl':
-#         return condition.get('inverted', False) != (condition['data'] in request.path)
-#     elif condition['name'] == 'authenticated':
-#         return condition.get('inverted', False) != current_user.is_authenticated
-#     elif condition['name'] == 'active':
-#         return condition.get('inverted', False) != current_user.is_active
-#     elif condition['name'] == 'anonymous':
-#         return condition.get('inverted', False) != current_user.is_anonymous
-#     else:
-#         raise Exception('Condition unknown.', condition)
-#     pass
-#
-#
-# @app.template_test('menu_conditions')
-# def test_menu_conditions(item):
-#     if type(item) is str or 'conditions' not in item:
-#         return True
-#     return all(map(_test_menu_condition, item['conditions']))
 
 
 def login_required(func):

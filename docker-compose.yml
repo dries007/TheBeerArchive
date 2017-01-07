@@ -4,6 +4,8 @@ services:
     db:
         image: postgres
         restart: always
+        # Must be db, or edit flask config
+        hostname: db
         volumes:
             - "db_volume:/var/lib/postgresql/data"
         env_file:
@@ -47,6 +49,7 @@ services:
     app:
         build: ./app
         restart: always
+        # Must be app, or change nginx configs
         hostname: app
         links:
             - db

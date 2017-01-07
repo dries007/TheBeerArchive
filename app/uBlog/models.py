@@ -8,12 +8,8 @@ from wtforms.validators import Regexp
 
 from uBlog import db
 
-
+# Enables assignment of plaintext to the password field, text to int fields and others. See docs.
 force_auto_coercion()
-
-# class Config(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     data = db.Column(db.JSON, nullable=False)
 
 
 class User(db.Model):
@@ -62,8 +58,6 @@ class Page(db.Model):
     title = db.Column(db.String, nullable=False)
     menu_left = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
     menu_right = db.Column(db.Boolean, nullable=False, default=False, server_default=text('FALSE'))
-
-    # posts = db.relationship('Post', backref='page', lazy='dynamic')
 
     def __repr__(self):
         return '<Page %r>' % self.id

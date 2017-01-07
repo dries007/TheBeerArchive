@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ page.title }}{% endblock %}
 {% block content %}
-    {% if user.admin %}
+    {% if current_user.admin %}
     <div class="pull-right btn-group">
         <a class="btn btn-sm btn-outline-secondary" role="button" href="/edit/page/{{ page.id }}"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
     </div>

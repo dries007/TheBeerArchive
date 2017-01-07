@@ -20,7 +20,6 @@
             <td>{{ page.id }}</td>
             <td><a href="/{{ page.name }}">{{ page.name }}</a></td>
             <td>{{ page.title }}</td>
-{#            <td class="text-xs-right"><a href="/edit/page/{{ page.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>#}
         </tr>
         {% endfor %}
     </tbody>
@@ -93,7 +92,6 @@
                 <a href="/beer/{{ beer.id }}">{{ beer.name }}</a>
             </td>
             <td>{{ beer.brewer.name }}</td>
-{#            <td class="text-xs-right"><a href="/edit/beer/{{ beer.id }}" class="btn btn-sm btn-secondary" title="Edit"><i class="fa fa-fw fa-pencil"></i></a></td>#}
         </tr>
         {% endfor %}
     </tbody>

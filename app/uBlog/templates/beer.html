@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{{ beer.name }}{% endblock %}
 {% block content %}
-    {% if user.admin or (beer.user_id == user.id) %}
+    {% if current_user.admin or (beer.user_id == current_user.id) %}
     <div class="pull-right btn-group">
-        <a class="btn btn-sm btn-outline-{{ 'secondary' if beer.user_id == user.id else 'warning' }}" role="button" href="/edit/beer/{{ beer.id }}"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
-        <a class="btn btn-sm btn-outline-{{ 'secondary' if beer.user_id == user.id else 'warning' }}" role="button" href="/edit/post?beer={{ beer.id }}"><i class="fa fa-plus" aria-hidden="true"></i> Post</a>
+        <a class="btn btn-sm btn-outline-{{ 'secondary' if beer.user_id == current_user.id else 'warning' }}" role="button" href="/edit/beer/{{ beer.id }}"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+        <a class="btn btn-sm btn-outline-{{ 'secondary' if beer.user_id == current_user.id else 'warning' }}" role="button" href="/edit/post?beer={{ beer.id }}"><i class="fa fa-plus" aria-hidden="true"></i> Post</a>
     </div>
     {% endif %}
     <h1><small>Brew: </small>{{ beer.name }}</h1>
@@ -12,8 +12,8 @@
     <div class="beer-meta text-muted font-italic"><small>By <a class="hide" href="/profile/{{ beer.brewer.id }}">{{ beer.brewer.name }}</a>. Published {{ beer.published | timedelta }}. {% if beer.published is older(beer.last_edit, minutes=10) %}Last edit {{ beer.last_edit | timedelta }}{% endif %}</small></div>
     {% for post in beer.posts.order_by('published desc').all() %}
         {% if loop.first %}<hr>{% endif %}
-        {% if post.user_id == user.id or user.admin %}
-            <div class="pull-right"><a class="btn btn-sm btn-outline-{{ 'secondary' if post.user_id == user.id else 'warning' }}" role="button" href="/edit/post/{{ post.id }}"><i class="fa fa-fw fa-edit"></i></a></div>
+        {% if post.user_id == current_user.id or current_user.admin %}
+            <div class="pull-right"><a class="btn btn-sm btn-outline-{{ 'secondary' if post.user_id == current_user.id else 'warning' }}" role="button" href="/edit/post/{{ post.id }}"><i class="fa fa-fw fa-edit"></i></a></div>
         {% endif %}
         <div class="post">
             {{ post.content_html | safe }}

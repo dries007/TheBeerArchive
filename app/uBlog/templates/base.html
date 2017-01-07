@@ -1,14 +1,41 @@
 {% import "macros.html" as macros %}
+<!--
+Copyright (c) 2016 - 2017 Dries007
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+Part of this copyright notice is the HTML meta tag with the name "generator".
+That HTML tag cannot be removed.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <!-- You are not allowed to remove the generator notice. -->
+    <meta name="generator" content="TheBeerArchive (c) 2016 - 2017 Dries007">
+
     <title>{% block title %}Dries007's Beer Bunker{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha256-mIfhv/h3MLq3WSiSlduuZO3saRNzzuf1LK8w3z3l3JY=" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha256-NuCn4IvuZXdBaFKJOAcsU2Q3ZpwbdFisd5dux4jkQ5w=" crossorigin="anonymous" />
-    {% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">{% endblock %}
+    {% block head %}<link rel="stylesheet" href="/static/css/base.css">{% endblock %}
 </head>
 <body>
     <!-- Fixed navbar -->
@@ -41,13 +68,13 @@
                     {% for page in pages if page.menu_right %}
                     <a href="/{{ page.name }}" class="nav-item nav-link">{{ page.title }}</a>
                     {% endfor %}
-                    {% if not user.is_active %}
+                    {% if not current_user.is_active %}
                     <a href="/login" class="nav-item nav-link">Login</a>
                     {% else %}
-                        {% if user.brewer %}
+                        {% if current_user.brewer %}
                             <a href="/edit/beer" class="nav-item nav-link">New Beer</a>
                         {% endif %}
-                        {% if user.admin %}
+                        {% if current_user.admin %}
                             <a href="/admin" class="nav-item nav-link">Admin</a>
                         {% endif %}
                     <a href="/profile" class="nav-item nav-link">Profile</a>
@@ -57,6 +84,7 @@
             </div>
         </div>
     </nav>
+    <!-- Page -->
     <div class="container">
     {% block messages %}
         {% with messages = get_flashed_messages(with_categories=True) %}
@@ -76,6 +104,7 @@
         <h1>{{ self.title() }}</h1>
     {% endblock %}
     </div>
+    <!-- Footer -->
     <footer class="footer">
       <div class="container">
           <span class="text-muted">&copy; 2017 <a class="hide" href="https://dries007.net">Dries007</a> - <a href="/terms" class="hide">Terms & Conditions</a></span>
@@ -88,7 +117,7 @@
     {% block script %}<script>
     "use strict";
 
-    {% if user.is_anonymous or user.emojis %}
+    {% if current_user.is_anonymous or current_user.emojis %}
     $(function ()
     {
         emojify.setConfig({
@@ -104,7 +133,6 @@
         $('.md').each(function (i, e) {
             emojify.run(e);
         });
-
     });
     {% endif %}
 
