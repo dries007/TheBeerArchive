@@ -5,9 +5,17 @@ The Homebrewer's blog software
 
 Currently in development.
 
+[Pretty much all documentation.](LOG.md)
 
-Structure
----------
+License
+-------
+
+Copyright &copy; 2017 - Dries007
+License: [MIT](LICENSE.md)
+
+
+## Original design document
+### Structure
 
 Every beer has it's own micro blog:
 - Name
@@ -33,9 +41,7 @@ Not linked to any beer:
 - The Beer List
 	- Filter / Sort by date, type, brewer, ...
 
-
-Software
---------
+### Software
 
 - Docker
 - Nginx
