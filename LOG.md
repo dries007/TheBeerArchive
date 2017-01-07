@@ -1,8 +1,9 @@
 # Captain's Log
 
-
 This document is meant as a loose guide on how to set up a fork of this software.
-It will take some minor adjustments to fully match your setup, but this and some Google'ing should get you there. 
+It will take some minor adjustments to fully match your setup, but this and some Google'ing should get you there.
+
+**Some Pyhton & HTML knowledge is assumed. This is not WordPress.**
 
 [TOC]
 
@@ -37,7 +38,7 @@ Command prefixes:
     - cdnjs             (Content Delivery Framework for all JS & CSS frameworks)
     - SimpleMDE         (In browser WYSIWYG markdown editor)
     
-For a full list of Python packages, see the [requirements.txt](app/requirements.txt) file.
+For a full list of Python packages, see the `requirements.txt` file.
 There are way too many Flask plugins to list them all here.
 
 Most of the HTML, JS and CSS won't be explained here. 
@@ -64,8 +65,8 @@ But some sources are more equal than others, and so deserve a special extra than
     - Run environment
         - Git
         - Docker
-            - Engine: https://docs.docker.com/engine/installation/
-            - Compose: https://docs.docker.com/compose/install/
+            - Engine: [docker engine]
+            - Compose: [docker compose]
 - Fork and clone this repo in a work folder. (Both dev and run.)
     All commands are now issues from here, unless otherwise noted.
 - Create a clean python virtual environment.
@@ -96,7 +97,9 @@ But some sources are more equal than others, and so deserve a special extra than
             - Via Tools -> Deployment -> Upload to ...
             - SSH into the server, `cd` into the folder.
               **Any command for the run environment are supposed to be run here.** 
-        
+
+[docker engine]: https://docs.docker.com/engine/installation/
+[docker compose]: https://docs.docker.com/compose/install/
 
 **All commands issues on the dev environment are assumed as being executed in the root folder of the git clone.
 With the virtual environment activated!**
@@ -136,7 +139,7 @@ If you are running windows: Welcome to your worst nightmare; File permissions.
 Make sure the Docker service is running.
 `# docker ps` shows the list of running docker instances.
     
-Have a look in the [docker-compose.yml](/docker-compose.yml) file.
+Have a look in the `docker-compose.yml` file.
 The `Fixme` notes indicate where you should look and see if settings are appropriate for your environment.
 
 The reason why there are so many host->container volumes instead of plain named volumes is for easier debug access.
@@ -185,19 +188,20 @@ This
         It may indicate that it can't reach your server.
         Port forwarding or firewall rules are a good first guess if something is wrong. 
 - Try and initialize the database with `app> python -m uBlog db upgrade`.
-    The result should be something along these lines:
-    ```
-    INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
-    INFO  [alembic.runtime.migration] Will assume transactional DDL.
-    INFO  [alembic.runtime.migration] Running upgrade  -> 4701d5186146, ...
-    ```
-    If not, look at the output of the containers:
+    The result should be something along [these](#upgrade-log) lines, if not, look at the output of the containers:
     - Did the `db` container say this anywhere? `PostgreSQL init process complete; ready for start up.`
     - Is `db` complaining about file permissions being wrong?
 - Open the domain again. You should get a 404.
 - Register an account. The fist account will become the Überadmin.
     No verification email will be send.
     You will be redirected to create a first page, which will always the the root page.
+
+###### Upgrade log:
+```
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 4701d5186146, ...
+```
 
 # Chapter 3: Using the website 
 
@@ -398,6 +402,7 @@ You can both easily extend as override default behaviour.
 **You will have to edit the templates to adapt the app to your own needs.**
 
 Some notes:
+
 - In `base.html`:
     - Block `content`:
         - `self.title()`:
@@ -432,7 +437,8 @@ Because of Jinja2's auto-escaping, you need to indicate when a string is already
 Otherwise it would be escaped. Example of this: The HTML markdown output for any of the pages is out thought
 the jinga filter `safe` which prevents is from being escaped.
 
-#### \_\_init__.py
+#### \_\_init__.py 
+<small>TIL: you can escape in markdown.</small>
 
 General setup. Sets up all of the 'master object' instances, such as:
 - `app`:        Flask               (God. Also reads configuration)
@@ -539,3 +545,4 @@ Some notes:
 - Any single path url (`/<name>`) is handled as a page, if no more specific or complex route exist.
 - All of the `/api` routes are meant as AJAX endpoints for the `/admin` page.
 
+<small>If you got here, and read all of it,  you deserve a cookie and a break.</small>
