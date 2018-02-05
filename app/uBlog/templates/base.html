@@ -107,7 +107,7 @@ SOFTWARE.
     <!-- Footer -->
     <footer class="footer">
       <div class="container">
-          <span class="text-muted">&copy; 2017 <a class="hide" href="https://dries007.net">Dries007</a> - <a href="/terms" class="hide">Terms & Conditions</a></span>
+          <span class="text-muted">&copy; 2017 <a class="hide" href="https://dries007.net">Dries007</a> - <a href="/terms" class="hide">Terms &amp; Conditions</a></span>
       </div>
     </footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
@@ -175,5 +175,14 @@ SOFTWARE.
             "Copyright (c) 2016 -> 2017 - Dries007.net - Source on Github: https://github.com/dries007/TheBeerArchive"
         );
     </script>
+    {% if config.GOOGLE_ANALYTICS %}
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{ config.GOOGLE_ANALYTICS }}"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ config.GOOGLE_ANALYTICS }}');
+      </script>
+    {% endif %}
 </body>
 </html>

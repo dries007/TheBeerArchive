@@ -11,8 +11,8 @@ services:
         env_file:
             - ./settings.env
             - ./passwords.env
-        ports:
-            - "5432:5432" # Fixme: Remove if you don't want DB access from the outside world.
+        #ports:
+            # - "5432:5432" # Remove if you don't want DB access from the outside world.
 
     # Nginx static web & proxy server
     nginx:
