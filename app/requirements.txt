@@ -21,7 +21,7 @@ humanize==0.5.1
 infinity==1.4
 intervals==0.8.0
 itsdangerous==0.24
-Jinja2==2.8
+Jinja2==2.10.1
 lxml==3.6.4
 Mako==1.0.6
 Markdown==2.6.7
